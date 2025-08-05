@@ -6,4 +6,9 @@
 
 .active hr{
     @apply block
+} 
+
+.gptzero-drag-handle,
+.gptzero-widget-container {
+  display: none !important;
 }
