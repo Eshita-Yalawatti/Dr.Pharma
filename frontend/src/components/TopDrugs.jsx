@@ -1,10 +1,13 @@
-import React from "react";
-import { drugs } from "../assets/assets_frontend/assets";
+import React, { useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { AppContext } from "../context/AppContext";
 
 const TopDrugs = () => {
   const handleAddToCart = (drug) => {
     console.log(`Added to cart: ${drug.name}`);
   };
+  const navigate = useNavigate();
+  const {drugs} = useContext(AppContext)
 
   return (
     <div className="flex flex-col items-center gap-4 my-16 text-gray-900 md:mx-10">
@@ -14,6 +17,7 @@ const TopDrugs = () => {
       <div className="w-full grid-auto-fill gap-4 pt-5 gap-y-6 px-3 sm:px-0">
         {drugs.slice(0, 10).map((drug, index) => (
           <div
+            onClick={() => navigate(`/buy-drugs/${drug._id}`)}
             key={index}
             className="border border-blue-200 rounded-xl overflow-hidden cursor-pointer hover:translate-y-[-10px] transition-all duration-500 flex flex-col"
           >

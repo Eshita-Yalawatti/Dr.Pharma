@@ -110,6 +110,7 @@ const DrugStore = () => {
         <div className="w-full grid grid-auto-fill gap-4 gap-y-6">
           {filterDrug.map((drug, index) => (
             <div
+              onClick={() => navigate(`/buy-drugs/${drug._id}`)}
               key={index}
               className="border border-blue-200 rounded-xl overflow-hidden cursor-pointer hover:translate-y-[-10px] transition-all duration-500 flex flex-col"
             >
