@@ -9,8 +9,10 @@ import MyProfile from './pages/MyProfile'
 import MyAppointments from './pages/MyAppointments'
 import Appointment from './pages/Appointment'
 import Navbar from './components/Navbar'
-import DrugStore from './pages/DrugStore'
 import Footer from './components/Footer'
+import MyCart from './pages/MyCart'
+import BuyDrug from './pages/BuyDrug'
+import DrugStore from './pages/DrugStore'
 
 const App = () => {
   return (
@@ -26,7 +28,12 @@ const App = () => {
         <Route path='/my-profile' element={<MyProfile />}/>
         <Route path='/my-appointments' element={<MyAppointments />}/>
         <Route path='/appointment/:docId' element={<Appointment />}/>
+        <Route path='/my-appointments' element={<MyAppointments />}/>
+        <Route path='/my-carts' element={<MyCart />}/>
+        <Route path='/buy-drugs/drugId' element={<BuyDrug />}/>
         <Route path='/drugstore' element={<DrugStore />}/>
+        <Route path='/drugstore/:category' element={<DrugStore />}/>
+
       </Routes>
       <Footer/>
     </div>

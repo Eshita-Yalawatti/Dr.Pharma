@@ -8,12 +8,11 @@ const Footer = () => {
         {/* ----- left Section ----- */}
         <div>
           <img className="mb-5 w-40" src={assets.logo} alt="" />
-          <p className="w-full md:w-2/3 text-gray-600 landing-6">
-            Lorem ipsum, dolor sit amet consectetur adipisicing elit. Non
-            delectus aut doloremque mollitia quibusdam ipsum error excepturi,
-            amet fuga dolore harum ex in nam? Corporis quis possimus at,
-            quisquam cupiditate ea natus ex laboriosam omnis repudiandae.
-            Voluptate, possimus!
+          <p className="w-full md:w-2/3 text-gray-600 leading-6">
+            We connect you with trusted healthcare professionals and provide
+            easy access to genuine medicines. Book doctor appointments online
+            and get your prescribed medicines delivered to your doorstep 
+            securely and conveniently.
           </p>
         </div>
 
@@ -40,8 +39,10 @@ const Footer = () => {
 
       {/* ----- Copyright Section ----- */}
       <div>
-        <hr className="text-gray-400"/>
-        <p className="py-5 text-sm text-center">Copyright 2025@ Sumaiya Hossain Surovi - All Right Reserved</p>
+        <hr className="text-gray-400" />
+        <p className="py-5 text-sm text-center">
+          Copyright 2025@ Sumaiya Hossain Surovi - All Right Reserved
+        </p>
       </div>
     </div>
   );
