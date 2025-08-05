@@ -8,7 +8,6 @@
     @apply block
 } 
 
-.gptzero-drag-handle,
-.gptzero-widget-container {
-  display: none !important;
+::-webkit-scrollbar{
+    @apply hidden
 }
