@@ -6,66 +6,72 @@ import { AdminContext } from "../../context/AdminContext";
 import { AppContext } from "../../context/AppContext";
 
 const AddDrug = () => {
-  const [drugImg, setDrugImg] = useState(false);
+  const [drugImg, setDrugImg] = useState(null);
   const [name, setName] = useState("");
   const [category, setCategory] = useState("Pain Relief");
   const [manufacturer, setManufacturer] = useState("");
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("");
   const [description, setDescription] = useState("");
-  const [prescriptionRequired, setPrescriptionRequired] = useState(true);
+  const [prescriptionRequired, setPrescriptionRequired] = useState(false);
   const [expiryDate, setExpiryDate] = useState("");
 
   const { backendUrl } = useContext(AppContext);
   const { aToken } = useContext(AdminContext);
 
-  const onSubmitHandler = async (event) => {
-    event.preventDefault();
+  const onSubmitHandler = async (e) => {
+    e.preventDefault();
+
+    if (!drugImg) return toast.error("Drug image not selected");
 
     try {
-      if (!drugImg) return toast.error("Drug image not selected");
-
       const formData = new FormData();
       formData.append("image", drugImg);
       formData.append("name", name);
       formData.append("category", category);
       formData.append("manufacturer", manufacturer);
-      formData.append("price", Number(price));
-      formData.append("stock", Number(stock));
+      formData.append("price", price);
+      formData.append("stock", stock || 0);
       formData.append("description", description);
       formData.append("prescriptionRequired", prescriptionRequired);
       formData.append("expiryDate", expiryDate);
 
       const { data } = await axios.post(
-        backendUrl + "/api/admin/add-drug",
+        `${backendUrl}/api/admin/add-drug`,
         formData,
-        { headers: { aToken } }
+        {
+          headers: {
+            aToken,
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
 
       if (data.success) {
         toast.success(data.message);
-        setDrugImg(false);
+
+        // Reset form
+        setDrugImg(null);
         setName("");
         setCategory("Pain Relief");
         setManufacturer("");
         setPrice("");
         setStock("");
         setDescription("");
-        setPrescriptionRequired(true);
+        setPrescriptionRequired(false);
         setExpiryDate("");
       } else {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message);
       console.log(error);
+      toast.error(error.message);
     }
   };
 
   return (
     <form onSubmit={onSubmitHandler} className="m-5 w-full">
       <p className="mb-3 text-lg font-medium">Add Drug</p>
-
       <div className="bg-white px-8 py-8 border rounded w-full max-w-4xl max-h-[80vh] overflow-y-scroll">
         {/* Image Upload */}
         <div className="flex items-center gap-4 mb-8 text-gray-500">
@@ -73,14 +79,14 @@ const AddDrug = () => {
             <img
               className="w-16 bg-gray-100 rounded cursor-pointer"
               src={drugImg ? URL.createObjectURL(drugImg) : assets.upload_area}
-              alt=""
+              alt="drug"
             />
           </label>
           <input
-            onChange={(e) => setDrugImg(e.target.files[0])}
             type="file"
             id="drug-img"
             hidden
+            onChange={(e) => setDrugImg(e.target.files[0])}
           />
           <p>
             Upload drug <br /> image
@@ -88,15 +94,16 @@ const AddDrug = () => {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-10 text-gray-600">
+          {/* Left Column */}
           <div className="w-full lg:flex-1 flex flex-col gap-4">
             <div className="flex-1 flex flex-col gap-1">
               <p>Drug Name</p>
               <input
-                onChange={(e) => setName(e.target.value)}
-                value={name}
-                className="border rounded px-3 py-2"
                 type="text"
                 placeholder="Drug name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="border rounded px-3 py-2"
                 required
               />
             </div>
@@ -104,8 +111,8 @@ const AddDrug = () => {
             <div className="flex-1 flex flex-col gap-1">
               <p>Category</p>
               <select
-                onChange={(e) => setCategory(e.target.value)}
                 value={category}
+                onChange={(e) => setCategory(e.target.value)}
                 className="border rounded px-2 py-2"
               >
                 <option value="Pain Relief">Pain Relief</option>
@@ -120,11 +127,11 @@ const AddDrug = () => {
             <div className="flex-1 flex flex-col gap-1">
               <p>Manufacturer</p>
               <input
-                onChange={(e) => setManufacturer(e.target.value)}
-                value={manufacturer}
-                className="border rounded px-3 py-2"
                 type="text"
                 placeholder="Manufacturer"
+                value={manufacturer}
+                onChange={(e) => setManufacturer(e.target.value)}
+                className="border rounded px-3 py-2"
                 required
               />
             </div>
@@ -132,11 +139,11 @@ const AddDrug = () => {
             <div className="flex-1 flex flex-col gap-1">
               <p>Price</p>
               <input
-                onChange={(e) => setPrice(e.target.value)}
-                value={price}
-                className="border rounded px-3 py-2"
                 type="number"
                 placeholder="Price"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                className="border rounded px-3 py-2"
                 required
               />
             </div>
@@ -144,23 +151,24 @@ const AddDrug = () => {
             <div className="flex-1 flex flex-col gap-1">
               <p>Stock</p>
               <input
-                onChange={(e) => setStock(e.target.value)}
-                value={stock}
-                className="border rounded px-3 py-2"
                 type="number"
                 placeholder="Stock"
+                value={stock}
+                onChange={(e) => setStock(e.target.value)}
+                className="border rounded px-3 py-2"
               />
             </div>
           </div>
 
+          {/* Right Column */}
           <div className="w-full lg:flex-1 flex flex-col gap-4">
             <div className="flex-1 flex flex-col gap-1">
               <p>Prescription Required?</p>
               <select
+                value={prescriptionRequired}
                 onChange={(e) =>
                   setPrescriptionRequired(e.target.value === "true")
                 }
-                value={prescriptionRequired}
                 className="border rounded px-2 py-2"
               >
                 <option value={true}>Yes</option>
@@ -171,10 +179,10 @@ const AddDrug = () => {
             <div className="flex-1 flex flex-col gap-1">
               <p>Expiry Date</p>
               <input
-                onChange={(e) => setExpiryDate(e.target.value)}
-                value={expiryDate}
-                className="border rounded px-3 py-2"
                 type="date"
+                value={expiryDate}
+                onChange={(e) => setExpiryDate(e.target.value)}
+                className="border rounded px-3 py-2"
                 required
               />
             </div>
@@ -182,11 +190,11 @@ const AddDrug = () => {
             <div className="flex-1 flex flex-col gap-1">
               <p>Description</p>
               <textarea
-                onChange={(e) => setDescription(e.target.value)}
-                value={description}
-                className="w-full px-4 pt-2 border rounded"
-                rows={5}
                 placeholder="Write about the drug"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={5}
+                className="w-full px-4 pt-2 border rounded"
                 required
               />
             </div>

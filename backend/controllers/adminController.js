@@ -8,7 +8,6 @@ import userModel from "../models/userModel.js";
 import drugModel from "../models/drugModel.js";
 import orderModel from "../models/orderModel.js";
 
-
 // API for admin login
 const loginAdmin = async (req, res) => {
   try {
@@ -153,15 +152,19 @@ const adminDashboard = async (req, res) => {
     const users = await userModel.find({});
     const appointments = await appointmentModel.find({});
     const drugs = await drugModel.find({});
-     const orders = await orderModel.find({}).populate("userId")                    // optional: get user details
-      .populate("drugs.drugId"); 
+    const orders = await orderModel
+      .find({})
+      .populate("userId") // optional: get user details
+      .populate("drugs.drugId");
 
     const dashData = {
       doctors: doctors.length,
       appointments: appointments.length,
       patients: users.length,
       drugs: drugs.length,
-      latestAppointments: Array.isArray(appointments) ? appointments.slice(-5).reverse() : [],
+      latestAppointments: Array.isArray(appointments)
+        ? appointments.slice(-5).reverse()
+        : [],
       latestOrders: Array.isArray(orders) ? orders.slice(-5).reverse() : [],
     };
 
@@ -183,7 +186,8 @@ const allDrugs = async (req, res) => {
   }
 };
 
-// Add new drug (admin)
+// adminController.js
+
 const addDrugs = async (req, res) => {
   try {
     const {
@@ -195,9 +199,11 @@ const addDrugs = async (req, res) => {
       description,
       prescriptionRequired,
       expiryDate,
-      image,
     } = req.body;
 
+    const imageFile = req.file; // multer handles the file
+
+    // Validate required fields
     if (
       !name ||
       !category ||
@@ -205,31 +211,41 @@ const addDrugs = async (req, res) => {
       !price ||
       !description ||
       !expiryDate ||
-      !image
+      !imageFile
     ) {
       return res.json({ success: false, message: "Missing Details" });
     }
 
+    // Upload image to Cloudinary
+    const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
+      resource_type: "image",
+    });
+    const imageUrl = imageUpload.secure_url;
+
+    // Save drug to DB
     const newDrug = new drugModel({
       name,
       category,
       manufacturer,
-      price,
-      stock: stock || 0,
+      price: Number(price),
+      stock: Number(stock) || 0,
       description,
-      prescriptionRequired: prescriptionRequired || false,
+      prescriptionRequired:
+        prescriptionRequired === "true" || prescriptionRequired === true,
       expiryDate,
-      image,
+      image: imageUrl,
       dateAdded: Date.now(),
     });
 
     await newDrug.save();
+
     res.json({ success: true, message: "Drug Added" });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });
   }
 };
+
 
 // Update drug (admin)
 const updateDrugs = async (req, res) => {
@@ -293,7 +309,6 @@ const updateOrderStatus = async (req, res) => {
     res.json({ success: false, message: error.message });
   }
 };
-
 
 export {
   loginAdmin,
