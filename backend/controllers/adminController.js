@@ -5,6 +5,9 @@ import bcrypt from "bcrypt";
 import validator from "validator";
 import { v2 as cloudinary } from "cloudinary";
 import userModel from "../models/userModel.js";
+import drugModel from "../models/drugModel.js";
+import orderModel from "../models/orderModel.js";
+
 
 // API for admin login
 const loginAdmin = async (req, res) => {
@@ -149,12 +152,17 @@ const adminDashboard = async (req, res) => {
     const doctors = await doctorModel.find({});
     const users = await userModel.find({});
     const appointments = await appointmentModel.find({});
+    const drugs = await drugModel.find({});
+     const orders = await orderModel.find({}).populate("userId")                    // optional: get user details
+      .populate("drugs.drugId"); 
 
     const dashData = {
       doctors: doctors.length,
       appointments: appointments.length,
       patients: users.length,
-      latestAppointments: appointments.reverse(),
+      drugs: drugs.length,
+      latestAppointments: Array.isArray(appointments) ? appointments.slice(-5).reverse() : [],
+      latestOrders: Array.isArray(orders) ? orders.slice(-5).reverse() : [],
     };
 
     res.json({ success: true, dashData });
@@ -190,7 +198,15 @@ const addDrugs = async (req, res) => {
       image,
     } = req.body;
 
-    if (!name || !category || !manufacturer || !price || !description || !expiryDate || !image) {
+    if (
+      !name ||
+      !category ||
+      !manufacturer ||
+      !price ||
+      !description ||
+      !expiryDate ||
+      !image
+    ) {
       return res.json({ success: false, message: "Missing Details" });
     }
 
@@ -228,16 +244,56 @@ const updateDrugs = async (req, res) => {
 };
 
 // Delete drug (admin)
-const deleteDrugs = async (req, res) => {
+const deleteDrugs = async (drugId) => {
   try {
-    const { drugId } = req.body;
-    await drugModel.findByIdAndDelete(drugId);
-    res.json({ success: true, message: "Drug Deleted" });
+    const { data } = await axios.post(
+      `${backendUrl}/api/admin/delete-drug`, // admin route
+      { drugId },
+      { headers: { aToken } } // must be admin token
+    );
+
+    if (data.success) {
+      toast.success(data.message);
+      getAllDrugs(); // refresh list
+    } else {
+      toast.error(data.message);
+    }
+  } catch (error) {
+    console.log(error);
+    toast.error(error.message);
+  }
+};
+
+// Get all orders (admin)
+const allOrders = async (req, res) => {
+  try {
+    const orders = await orderModel
+      .find({})
+      .populate("userId") // populate user info
+      .populate("drugs.drugId"); // populate drug info
+    res.json({ success: true, orders });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });
   }
 };
+
+// Update order status (admin)
+const updateOrderStatus = async (req, res) => {
+  try {
+    const { orderId, status } = req.body;
+    if (!["pending", "completed", "cancelled"].includes(status)) {
+      return res.json({ success: false, message: "Invalid status" });
+    }
+
+    await orderModel.findByIdAndUpdate(orderId, { status });
+    res.json({ success: true, message: `Order marked as ${status}` });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
 
 export {
   loginAdmin,
@@ -250,4 +306,6 @@ export {
   adminDashboard,
   updateDrugs,
   deleteDrugs,
+  allOrders,
+  updateOrderStatus,
 };

@@ -34,7 +34,17 @@ adminRouter.get("/dashboard", authAdmin, adminDashboard);
 
 // ----- Drugs -----
 adminRouter.get("/all-drugs", authAdmin, allDrugs);
-adminRouter.post("/add-drug", authAdmin, addDrugs);
+adminRouter.post("/add-drug", authAdmin, upload.single("image"), addDrugs);
 adminRouter.post("/update-drug", authAdmin, updateDrugs);
 adminRouter.post("/delete-drug", authAdmin, deleteDrugs);
+
+import { allOrders, updateOrderStatus } from "../controllers/adminController.js";
+
+// Get all orders
+adminRouter.get("/all-orders", authAdmin, allOrders);
+
+// Update order status
+adminRouter.post("/update-order-status", authAdmin, updateOrderStatus);
+
+
 export default adminRouter;

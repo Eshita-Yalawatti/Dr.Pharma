@@ -16,13 +16,13 @@ const SpecialityMenu = () => {
       <div className="flex sm:justify-center gap-4 pt-5 w-full overflow-scroll ">
         {specialtyData.map((item, index) => (
           <Link
-            to={`/doctors/${item.speciality}`}
+            to={`/doctors/${item.specialty}`}
             onClick={() => scrollTo(0, 0)}
             className="flex flex-col items-center text-xs cursor-pointer flex-shrink-0 hover:translate-y-[-10px] transition-all duration-500"
             key={index}
           >
             <img className="w-16 sm:w-24 mb-2 " src={item.image} alt="" />
-            <p>{item.speciality}</p>
+            <p>{item.specialty}</p>
           </Link>
         ))}
       </div>

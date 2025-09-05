@@ -59,13 +59,7 @@ const TopDrugs = () => {
         ))}
       </div>
 
-      <button
-        onClick={() => {
-          window.scrollTo(0, 0);
-          // Add routing to full drug page if needed
-        }}
-        className="bg-blue-50 text-gray-600 px-12 py-3 rounded-full mt-10"
-      >
+      <button onClick={()=>{navigate('/drugs'); scrollTo(0,0)}} className="bg-blue-50 text-gray-600 px-12 py-3 rounded-full mt-10">
         more
       </button>
     </div>
