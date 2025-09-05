@@ -9,10 +9,6 @@ const DrugStore = () => {
 
   const { drugs } = useContext(AppContext);
 
-  const handleAddToCart = (drug) => {
-    console.log(`Added to cart: ${drug.name}`);
-  };
-
   const applyFilter = () => {
     if (category) {
       setFilterDrug(drugs.filter((drug) => drug.category === category));
@@ -27,9 +23,10 @@ const DrugStore = () => {
 
   return (
     <div>
-      <p className="text-gray-600">Browse through the drugs category.</p>
+      <p className="text-gray-600">Browse medicines by category.</p>
       <div className="flex flex-col sm:flex-row items-start gap-5 mt-5">
-        <div className="w-64 flex flex-col gap-4 text-sm text-gray-600">
+        {/* Sidebar Categories */}
+        <div className="flex flex-col gap-4 text-sm text-gray-600">
           <p
             onClick={() =>
               category === "Pain Relief"
@@ -54,7 +51,6 @@ const DrugStore = () => {
           >
             Allergy
           </p>
-
           <p
             onClick={() =>
               category === "Antibiotic"
@@ -67,7 +63,6 @@ const DrugStore = () => {
           >
             Antibiotic
           </p>
-
           <p
             onClick={() =>
               category === "Antacid"
@@ -80,7 +75,6 @@ const DrugStore = () => {
           >
             Antacid
           </p>
-
           <p
             onClick={() =>
               category === "Diabetes"
@@ -93,7 +87,6 @@ const DrugStore = () => {
           >
             Diabetes
           </p>
-
           <p
             onClick={() =>
               category === "Mental Health"
@@ -107,46 +100,19 @@ const DrugStore = () => {
             Mental Health
           </p>
         </div>
+
+        {/* Main Drug Grid */}
         <div className="w-full grid grid-auto-fill gap-4 gap-y-6">
-          {filterDrug.map((drug, index) => (
+          {filterDrug.map((item, index) => (
             <div
-              onClick={() => navigate(`/buy-drugs/${drug._id}`)}
+              onClick={() => navigate(`/drug/${item._id}`)}
+              className="border border-blue-200 rounded-xl overflow-hidden cursor-pointer hover:translate-y-[-10px] transition-all duration-500"
               key={index}
-              className="border border-blue-200 rounded-xl overflow-hidden cursor-pointer hover:translate-y-[-10px] transition-all duration-500 flex flex-col"
             >
-              <img
-                className="bg-blue-50 h-40 object-contain w-full"
-                src={drug.image}
-                alt={drug.name}
-              />
-
-              <div className="p-4 flex flex-col justify-between flex-1">
-                <div className="flex items-center gap-2 text-sm text-green-500 mb-2">
-                  <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                  <p>Available</p>
-                </div>
-
-                <p className="text-gray-900 text-lg font-medium">{drug.name}</p>
-                <p className="text-gray-600 text-sm mb-1">{drug.company}</p>
-                <p className="text-sm text-gray-700 mb-2">{drug.category}</p>
-
-                <div className="text-sm text-gray-800 mb-3">
-                  <p>
-                    <span className="font-semibold">Unit Price:</span>{" "}
-                    {drug.unit_price}
-                  </p>
-                  <p>
-                    <span className="font-semibold">Strip Price:</span>{" "}
-                    {drug.strip_price}
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => handleAddToCart(drug)}
-                  className="bg-primary text-white text-sm px-4 py-2 rounded-full hover:opacity-90 transition duration-300"
-                >
-                  Add to Cart
-                </button>
+              <img className="bg-blue-50" src={item.image} alt="" />
+              <div className="p-4">
+                <p className="text-gray-900 text-lg font-medium">{item.name}</p>
+                <p className="text-gray-600 text-sm">{item.category}</p>
               </div>
             </div>
           ))}
