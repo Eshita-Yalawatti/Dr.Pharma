@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import drugModel from "../models/drugModel.js";
 
-// API for drug manager login
+// API for admin login
 const loginDrug = async (req, res) => {
   try {
     const { email, password } = req.body;

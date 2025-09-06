@@ -1,4 +1,3 @@
-// src/pages/DrugStore.jsx
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
@@ -7,12 +6,12 @@ import { toast } from "react-toastify";
 const DrugStore = () => {
   const { category } = useParams();
   const navigate = useNavigate();
-  const { drugs, currencySymbol, cart, setCart } = useContext(AppContext);
+  const { drugs, currencySymbol, cart, addToCart } = useContext(AppContext);
 
   const [filterDrug, setFilterDrug] = useState([]);
   const [quantityMap, setQuantityMap] = useState({});
   const [disableMap, setDisableMap] = useState({});
-  const [stockMap, setStockMap] = useState({}); // { drugId: stock }
+  const [stockMap, setStockMap] = useState({});
 
   const applyFilter = () => {
     if (category) {
@@ -25,7 +24,7 @@ const DrugStore = () => {
   useEffect(() => {
     applyFilter();
 
-    // Initialize from cart
+    // Initialize quantity, disable and stock maps
     const initialQty = {};
     const initialDisable = {};
     const initialStock = {};
@@ -34,7 +33,7 @@ const DrugStore = () => {
       initialStock[drug._id] = drug.stock - (cartItem?.quantity || 0);
       if (cartItem) {
         initialQty[drug._id] = cartItem.quantity;
-        initialDisable[drug._id] = true; // disable initially
+        initialDisable[drug._id] = true;
       }
     });
     setQuantityMap(initialQty);
@@ -48,7 +47,7 @@ const DrugStore = () => {
       if (newQty < 1) newQty = 1;
       if (newQty > (stockMap[drugId] || 0)) newQty = stockMap[drugId];
 
-      // Enable Add to Cart on qty change
+      // Enable Add to Cart button
       setDisableMap((prevDisable) => ({ ...prevDisable, [drugId]: false }));
 
       return { ...prev, [drugId]: newQty };
@@ -65,34 +64,14 @@ const DrugStore = () => {
     const qty = quantityMap[drug._id] || 1;
     if (qty > (stockMap[drug._id] || 0)) return alert("Not enough stock");
 
-    const totalPrice = (drug.price || 0) * qty;
-
-    // Update cart
-    const existingIndex = cart.findIndex((item) => item._id === drug._id);
-    let newCart = [...cart];
-    if (existingIndex >= 0) {
-      newCart[existingIndex].quantity = qty;
-      newCart[existingIndex].totalPrice = totalPrice;
-    } else {
-      newCart.push({
-        _id: drug._id,
-        name: drug.name,
-        image: drug.image,
-        stock: stockMap[drug._id],
-        quantity: qty,
-        price: drug.price,
-        totalPrice,
-      });
-    }
-    setCart(newCart);
+    // Call context addToCart to sync with backend
+    addToCart(drug, qty);
 
     // Disable button after adding
     setDisableMap((prev) => ({ ...prev, [drug._id]: true }));
 
     // Update stock map
     setStockMap((prev) => ({ ...prev, [drug._id]: prev[drug._id] - qty }));
-
-    toast.success(`${drug.name} added to cart`);
   };
 
   return (
@@ -133,7 +112,6 @@ const DrugStore = () => {
             const currentStock = stockMap[drug._id] || 0;
             const isDisabled = disableMap[drug._id] || currentStock === 0;
 
-            // Button class logic
             const btnClass = isDisabled
               ? "mt-2 px-4 py-2 rounded-full text-white bg-gray-400 cursor-not-allowed"
               : "mt-2 px-4 py-2 rounded-full text-white bg-blue-500 hover:opacity-90";
@@ -150,7 +128,6 @@ const DrugStore = () => {
                   onClick={() => navigate(`/buy-drugs/${drug._id}`)}
                 />
                 <div className="p-4 flex flex-col justify-between flex-1">
-                  {/* Stock indicator */}
                   <div className="flex items-center gap-2 text-sm mb-2">
                     <p
                       className={`w-2 h-2 rounded-full ${
@@ -168,9 +145,7 @@ const DrugStore = () => {
                     </p>
                   </div>
 
-                  <p className="text-gray-900 text-lg font-medium">
-                    {drug.name}
-                  </p>
+                  <p className="text-gray-900 text-lg font-medium">{drug.name}</p>
                   <p className="text-gray-600 text-sm mb-1">{drug.category}</p>
 
                   {/* Quantity selector */}

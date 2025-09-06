@@ -1,140 +1,152 @@
+import userModel from "../models/userModel.js";
 import orderModel from "../models/orderModel.js";
-import drugModel from "../models/drugModel.js";
 
-// ===================== Cart Functions =====================
-
-// Add item to cart
+// ---------------- Add item to cart ----------------
 export const addToCart = async (req, res) => {
   try {
-    const { userId, drugId, quantity } = req.body;
+    const userId = req.userId;
+    const { drugId, quantity, price } = req.body;
 
-    const drug = await drugModel.findById(drugId);
-    if (!drug) return res.json({ success: false, message: "Drug not found" });
-    if (quantity > drug.stock) return res.json({ success: false, message: `Not enough stock for ${drug.name}` });
-
-    // Find user's pending cart or create new
-    let order = await orderModel.findOne({ userId, status: "pending" });
-    if (!order) {
-      order = new orderModel({ userId, drugs: [], totalAmount: 0, status: "pending" });
+    if (!drugId || !quantity || !price) {
+      return res.status(400).json({ success: false, message: "Missing data" });
     }
 
-    // Add or update item in cart
-    const existingItemIndex = order.drugs.findIndex(d => d.drugId.toString() === drugId);
-    if (existingItemIndex > -1) {
-      order.drugs[existingItemIndex].quantity += quantity;
-      order.drugs[existingItemIndex].price = drug.price;
-    } else {
-      order.drugs.push({ drugId, quantity, price: drug.price });
-    }
+    const user = await userModel.findById(userId);
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
 
-    // Recalculate total
-    order.totalAmount = order.drugs.reduce((sum, d) => sum + d.quantity * d.price, 0);
+    await user.addToCart(drugId, quantity, price);
 
-    await order.save();
-    res.json({ success: true, message: "Item added to cart", order });
+    res.json({ success: true, message: "Item added to cart" });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
+    console.error(error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// Remove item from cart
+// ---------------- Remove item from cart ----------------
 export const removeFromCart = async (req, res) => {
   try {
-    const { userId, drugId } = req.body;
+    const userId = req.userId;
+    const { drugId } = req.body;
 
-    const order = await orderModel.findOne({ userId, status: "pending" });
-    if (!order) return res.json({ success: false, message: "No pending cart found" });
+    const user = await userModel.findById(userId);
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
 
-    order.drugs = order.drugs.filter(d => d.drugId.toString() !== drugId);
+    await user.removeFromCart(drugId);
 
-    // Recalculate total
-    order.totalAmount = order.drugs.reduce((sum, d) => sum + d.quantity * d.price, 0);
-
-    await order.save();
-    res.json({ success: true, message: "Item removed from cart", order });
+    res.json({ success: true, message: "Item removed from cart" });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
+    console.error(error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// ===================== Order Functions =====================
+// ---------------- Clear cart ----------------
+export const clearCart = async (req, res) => {
+  try {
+    const userId = req.userId;
 
-// Place an order
+    const user = await userModel.findById(userId);
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+
+    await user.clearCart();
+
+    res.json({ success: true, message: "Cart cleared" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ---------------- Create order ----------------
 export const createOrder = async (req, res) => {
   try {
-    const { userId, drugs } = req.body;
+    const userId = req.userId;
 
-    let totalAmount = 0;
+    const user = await userModel.findById(userId).populate("cart.drugId");
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
 
-    // Calculate total and check stock
-    for (let item of drugs) {
-      const drug = await drugModel.findById(item.drugId);
-      if (!drug) return res.json({ success: false, message: "Drug not found" });
-      if (item.quantity > drug.stock) return res.json({ success: false, message: `Not enough stock for ${drug.name}` });
+    if (!user.cart.length)
+      return res.status(400).json({ success: false, message: "Cart is empty" });
 
-      totalAmount += item.quantity * drug.price;
-    }
+    // Calculate total amount
+    const totalAmount = user.cart.reduce(
+      (acc, item) => acc + item.quantity * item.price,
+      0
+    );
 
-    const order = new orderModel({
+    // Create new order
+    const newOrder = new orderModel({
       userId,
-      drugs: drugs.map(d => ({
-        drugId: d.drugId,
-        quantity: d.quantity,
-        price: d.price,
+      drugs: user.cart.map((item) => ({
+        drugId: item.drugId._id,
+        quantity: item.quantity,
+        price: item.price,
       })),
       totalAmount,
-      status: "pending"
     });
 
-    await order.save();
+    const order = await newOrder.save();
 
-    // Reduce stock
-    for (let item of drugs) {
-      await drugModel.findByIdAndUpdate(item.drugId, { $inc: { stock: -item.quantity } });
-    }
+    // Add order to user's order history
+    await user.addOrderHistory(order._id);
 
-    res.json({ success: true, message: "Order placed", order });
+    // Clear user's cart
+    await user.clearCart();
+
+    res.json({ success: true, message: "Order created", order });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
+    console.error(error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// Cancel order
+// ---------------- Cancel order ----------------
 export const cancelOrder = async (req, res) => {
   try {
-    const { orderId, userId } = req.body;
+    const userId = req.userId;
+    const { orderId } = req.body;
 
     const order = await orderModel.findById(orderId);
-    if (!order) return res.json({ success: false, message: "Order not found" });
-    if (order.userId.toString() !== userId) return res.json({ success: false, message: "Unauthorized" });
-    if (order.status !== "pending") return res.json({ success: false, message: "Cannot cancel completed order" });
+    if (!order)
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
+    if (order.userId.toString() !== userId)
+      return res.status(403).json({ success: false, message: "Unauthorized" });
 
     order.status = "cancelled";
     await order.save();
 
-    // Restore stock
-    for (let item of order.drugs) {
-      await drugModel.findByIdAndUpdate(item.drugId, { $inc: { stock: item.quantity } });
-    }
-
     res.json({ success: true, message: "Order cancelled" });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
+    console.error(error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// Get user's orders
+// ---------------- Get user orders ----------------
 export const getUserOrders = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const userId = req.userId;
+
     const orders = await orderModel.find({ userId }).populate("drugs.drugId");
+
     res.json({ success: true, orders });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
+    console.error(error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };

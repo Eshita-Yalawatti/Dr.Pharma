@@ -16,6 +16,7 @@ import DrugStore from './pages/DrugStore'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Verify from './pages/Verify'
+import MyOrders from './pages/MyOrders'
 
 const App = () => {
   return (
@@ -34,9 +35,9 @@ const App = () => {
         <Route path='/my-profile' element={<MyProfile />}/>
         <Route path='/my-appointments' element={<MyAppointments />}/>
         <Route path='/appointment/:docId' element={<Appointment />}/>
-        <Route path='/my-appointments' element={<MyAppointments />}/>
+        <Route path='/my-orders' element={<MyOrders />}/>
         <Route path='/my-carts' element={<MyCart />}/>
-        <Route path='/buy-drugs/drugId' element={<BuyDrug />}/>
+        <Route path='/buy-drugs/:drugId' element={<BuyDrug />}/>
         <Route path='/drugstore' element={<DrugStore />}/>
         <Route path='/drugstore/:category' element={<DrugStore />}/>
         <Route path='/verify' element={<Verify />} />

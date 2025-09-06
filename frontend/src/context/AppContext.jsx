@@ -1,4 +1,3 @@
-// src/context/AppContext.jsx
 import { createContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -11,18 +10,16 @@ const AppContextProvider = (props) => {
 
   const [doctors, setDoctors] = useState([]);
   const [drugs, setDrugs] = useState([]);
-  const [token, setToken] = useState(localStorage.getItem("token") || "");
+  const [token, setToken] = useState(localStorage.getItem("token") || false);
   const [userData, setUserData] = useState(false);
+  const [cart, setCart] = useState([]);
 
   // ================= GET DOCTORS =================
   const getDoctorsData = async () => {
     try {
       const { data } = await axios.get(`${backendUrl}/api/doctor/list`);
-      if (data.success) {
-        setDoctors(data.doctors);
-      } else {
-        toast.error(data.message);
-      }
+      if (data.success) setDoctors(data.doctors);
+      else toast.error(data.message);
     } catch (error) {
       console.error("Error fetching doctors:", error);
       toast.error(error.message);
@@ -33,48 +30,17 @@ const AppContextProvider = (props) => {
   const getDrugsData = async () => {
     try {
       const { data } = await axios.get(`${backendUrl}/api/drug/list`);
-      if (data.success) {
-        setDrugs(data.drugs);
-      } else {
-        toast.error(data.message);
-      }
+      if (data.success) setDrugs(data.drugs);
+      else toast.error(data.message);
     } catch (error) {
       console.error("Error fetching drugs:", error);
       toast.error(error.message);
     }
   };
 
-  // 🛒 CART STATE
-  const [cart, setCart] = useState([]);
-
-  const addToCart = (drug, qty) => {
-    setCart((prev) => {
-      const existing = prev.find((item) => item._id === drug._id);
-      if (existing) {
-        return prev.map((item) =>
-          item._id === drug._id
-            ? {
-                ...item,
-                qty: item.qty + qty,
-                subtotal: (item.qty + qty) * item.price,
-              }
-            : item
-        );
-      } else {
-        return [...prev, { ...drug, qty, subtotal: qty * drug.price }];
-      }
-    });
-    toast.success(`${drug.name} added to cart`);
-  };
-
-  const removeFromCart = (drugId) => {
-    setCart((prev) => prev.filter((item) => item._id !== drugId));
-  };
-
-  const clearCart = () => setCart([]);
-
-  // ================= GET USER PROFILE =================
+  // ================= USER PROFILE =================
   const loadUserProfileData = async () => {
+    if (!token) return;
     try {
       const { data } = await axios.get(`${backendUrl}/api/user/get-profile`, {
         headers: { token },
@@ -87,20 +53,111 @@ const AppContextProvider = (props) => {
     }
   };
 
-  // ================= LOAD INITIAL DATA =================
+  // ================= CART =================
+  const loadUserCart = async () => {
+    if (!token) return setCart([]);
+    try {
+      const { data } = await axios.get(`${backendUrl}/api/user/cart`, {
+        // <-- fixed here
+        headers: { token },
+      });
+      if (data.success) {
+        setCart(
+          data.cart.map((d) => ({
+            _id: d.drugId._id,
+            name: d.drugId.name,
+            image: d.drugId.image,
+            price: d.drugId.price,
+            quantity: d.quantity,
+            discount: d.discount,
+            isPaid: d.isPaid,
+            totalPrice: d.quantity * d.drugId.price,
+          }))
+        );
+      }
+    } catch (error) {
+      console.error("Error loading cart:", error);
+      toast.error("Failed to load cart");
+      setCart([]);
+    }
+  };
+
+  const addToCart = async (drug, qty = 1) => {
+    if (!token) return toast.info("Please login first");
+    try {
+      const { data } = await axios.post(
+        `${backendUrl}/api/user/cart/add`,
+        {
+          drugId: drug._id,
+          quantity: qty,
+          price: drug.price, // ✅ add price
+        },
+        { headers: { token } }
+      );
+
+      if (data.success) {
+        loadUserCart();
+        toast.success(`${drug.name} added to cart`);
+      } else toast.error(data.message);
+    } catch (error) {
+      console.error(error);
+      toast.error(error.message);
+    }
+  };
+
+  const removeFromCart = async (drugId) => {
+    if (!token) return toast.info("Please login first");
+    try {
+      const { data } = await axios.post(
+        `${backendUrl}/api/user/cart/remove`,
+        { drugId },
+        { headers: { token } }
+      );
+      if (data.success) {
+        loadUserCart();
+        toast.success("Removed from cart");
+      } else toast.error(data.message);
+    } catch (error) {
+      console.error(error);
+      toast.error(error.message);
+    }
+  };
+
+  const clearCart = async () => {
+    if (!token) return toast.info("Please login first");
+    try {
+      const { data } = await axios.post(
+        `${backendUrl}/api/user/cart/clear`,
+        {},
+        { headers: { token } }
+      );
+      if (data.success) {
+        setCart([]);
+        toast.success("Cart cleared");
+      } else toast.error(data.message);
+    } catch (error) {
+      console.error(error);
+      toast.error(error.message);
+    }
+  };
+
+  // ================= INITIAL DATA =================
   useEffect(() => {
     getDoctorsData();
     getDrugsData();
   }, []);
 
-  // ================= LOAD USER DATA WHEN TOKEN CHANGES =================
+  // Load user data and cart when token changes
   useEffect(() => {
     if (token) {
       loadUserProfileData();
+      loadUserCart();
+    } else {
+      setUserData(false);
+      setCart([]);
     }
   }, [token]);
 
-  // ================= CONTEXT VALUE =================
   const value = {
     setCart,
     doctors,
@@ -118,6 +175,7 @@ const AppContextProvider = (props) => {
     addToCart,
     removeFromCart,
     clearCart,
+    loadUserCart,
   };
 
   return (

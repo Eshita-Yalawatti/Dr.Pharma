@@ -89,9 +89,13 @@ const loginUser = async (req, res) => {
 // API to get user profile data
 const getProfile = async (req, res) => {
   try {
-    const { userId } = req.body;
-    const userData = await userModel.findById(userId).select("-password");
+    const token = req.headers.token;
+    if (!token) return res.json({ success: false, message: "Token missing" });
 
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.id;
+
+    const userData = await userModel.findById(userId).select("-password");
     res.json({ success: true, userData });
   } catch (error) {
     console.log(error);
@@ -102,8 +106,9 @@ const getProfile = async (req, res) => {
 // API to update user profile
 const updateProfile = async (req, res) => {
   try {
-    const { userId, name, phone, address, dob, gender } = req.body;
+    const { name, phone, address, dob, gender } = req.body;
     const imageFile = req.file;
+    const userId = req.userId; // <-- middleware থেকে আসা
 
     if (!name || !phone || !dob || !gender) {
       return res.json({ success: false, message: "Data Missing" });
@@ -118,13 +123,12 @@ const updateProfile = async (req, res) => {
     });
 
     if (imageFile) {
-      // upload image to cloudinary
       const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
         resource_type: "image",
       });
-      const imageURL = imageUpload.secure_url;
-
-      await userModel.findByIdAndUpdate(userId, { image: imageURL });
+      await userModel.findByIdAndUpdate(userId, {
+        image: imageUpload.secure_url,
+      });
     }
 
     res.json({ success: true, message: "Profile Updated" });
@@ -137,16 +141,21 @@ const updateProfile = async (req, res) => {
 // API to book appointment
 const bookAppointment = async (req, res) => {
   try {
-    const { userId, docId, slotDate, slotTime } = req.body;
+    const { docId, slotDate, slotTime } = req.body;
+    const userId = req.userId; // middleware থেকে আসবে
+
+    if (!userId)
+      return res.json({ success: false, message: "User not logged in" });
+
     const docData = await doctorModel.findById(docId).select("-password");
-
-    if (!docData.available) {
+    if (!docData)
+      return res.json({ success: false, message: "Doctor not found" });
+    if (!docData.available)
       return res.json({ success: false, message: "Doctor Not Available" });
-    }
 
-    let slots_booked = docData.slots_booked;
+    let slots_booked = docData.slots_booked || {};
 
-    // checking for slot availablity
+    // checking for slot availability
     if (slots_booked[slotDate]) {
       if (slots_booked[slotDate].includes(slotTime)) {
         return res.json({ success: false, message: "Slot Not Available" });
@@ -154,19 +163,21 @@ const bookAppointment = async (req, res) => {
         slots_booked[slotDate].push(slotTime);
       }
     } else {
-      slots_booked[slotDate] = [];
-      slots_booked[slotDate].push(slotTime);
+      slots_booked[slotDate] = [slotTime];
     }
 
     const userData = await userModel.findById(userId).select("-password");
+    if (!userData)
+      return res.json({ success: false, message: "User not found" });
 
-    delete docData.slots_booked;
+    const docDataForAppointment = { ...docData._doc };
+    delete docDataForAppointment.slots_booked;
 
     const appointmentData = {
       userId,
-      docId,
       userData,
-      docData,
+      docId,
+      docData: docDataForAppointment,
       amount: docData.fees,
       slotTime,
       slotDate,
@@ -176,10 +187,75 @@ const bookAppointment = async (req, res) => {
     const newAppointment = new appointmentModel(appointmentData);
     await newAppointment.save();
 
-    // save new slots data in docData
+    // save new slots data in doctor
     await doctorModel.findByIdAndUpdate(docId, { slots_booked });
 
     res.json({ success: true, message: "Appointment Booked" });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// Get user cart
+const getUserCart = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const user = await userModel.findById(userId).populate("cart.drugId");
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+
+    res.json({ success: true, cart: user.cart || [] });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Add to Cart
+const addToCart = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { drugId, quantity, price } = req.body;
+
+    const user = await userModel.findById(userId);
+    if (!user) return res.json({ success: false, message: "User not found" });
+
+    // check if drug already exists in cart
+    const existingItemIndex = user.cart.findIndex(
+      (item) => item.drugId.toString() === drugId
+    );
+
+    if (existingItemIndex !== -1) {
+      // update quantity
+      user.cart[existingItemIndex].quantity += quantity;
+    } else {
+      user.cart.push({ drugId, quantity, price });
+    }
+
+    await user.save();
+    res.json({ success: true, cart: user.cart });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// Remove from Cart
+const removeFromCart = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { drugId } = req.body;
+
+    const user = await userModel.findById(userId);
+    if (!user) return res.json({ success: false, message: "User not found" });
+
+    user.cart = user.cart.filter((item) => item.drugId.toString() !== drugId);
+    await user.save();
+
+    res.json({ success: true, cart: user.cart });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });
@@ -346,6 +422,89 @@ const verifyStripe = async (req, res) => {
   }
 };
 
+// Get all user orders
+const getUserOrders = async (req, res) => {
+  try {
+    const userId = req.userId; // middleware থেকে আসবে
+    const user = await userModel
+      .findById(userId)
+      .populate("orderHistory.orderId");
+
+    if (!user) return res.json({ success: false, message: "User not found" });
+
+    res.json({ success: true, orders: user.orderHistory || [] });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// Make payment for drug order using Razorpay
+const paymentRazorpayForDrug = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+    const orderData = await orderModel.findById(orderId);
+
+    if (!orderData || orderData.cancelled) {
+      return res.json({
+        success: false,
+        message: "Order not found or cancelled",
+      });
+    }
+
+    const options = {
+      amount: orderData.totalAmount * 100, // convert to smallest currency unit
+      currency: process.env.CURRENCY,
+      receipt: orderId,
+    };
+
+    const order = await razorpayInstance.orders.create(options);
+    res.json({ success: true, order });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// Verify Razorpay payment for drug order
+const verifyRazorpayForDrug = async (req, res) => {
+  try {
+    const { razorpay_order_id } = req.body;
+    const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id);
+
+    if (orderInfo.status === "paid") {
+      // Update order payment status
+      const order = await orderModel.findByIdAndUpdate(
+        orderInfo.receipt,
+        {
+          payment: true,
+        },
+        { new: true }
+      );
+
+      // Update user's order history
+      await userModel.findByIdAndUpdate(order.userId, {
+        $push: { orderHistory: { orderId: order._id } },
+        $set: { cart: [] }, // clear cart after successful purchase
+      });
+
+      // Reduce drug stock
+      for (let item of order.items) {
+        await drugModel.findByIdAndUpdate(item.drugId, {
+          $inc: { stock: -item.quantity },
+        });
+      }
+
+      res.json({ success: true, message: "Payment Successful" });
+    } else {
+      res.json({ success: false, message: "Payment Failed" });
+    }
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
 export {
   loginUser,
   registerUser,
@@ -358,4 +517,10 @@ export {
   verifyRazorpay,
   paymentStripe,
   verifyStripe,
+  getUserCart,
+  addToCart,
+  removeFromCart,
+  verifyRazorpayForDrug,
+  paymentRazorpayForDrug,
+  getUserOrders,
 };

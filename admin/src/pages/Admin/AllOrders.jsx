@@ -75,14 +75,14 @@ const AllOrders = () => {
                 <>
                   <img
                     onClick={() => updateOrderStatus(order._id, "completed")}
-                    className="w-6 cursor-pointer"
-                    src={assets.check_icon}
+                    className="w-10 cursor-pointer"
+                    src={assets.tick_icon}
                     alt="Complete"
                     title="Mark as Completed"
                   />
                   <img
                     onClick={() => updateOrderStatus(order._id, "cancelled")}
-                    className="w-6 cursor-pointer"
+                    className="w-10 cursor-pointer"
                     src={assets.cancel_icon}
                     alt="Cancel"
                     title="Cancel Order"
