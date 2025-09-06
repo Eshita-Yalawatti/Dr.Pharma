@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 const CategoryMenu = () => {
   return (
     <div
-      id="categories"
+      id="category"
       className="flex flex-col items-center gap-4 py-16 text-[#262626]"
     >
       <h1 className="text-3xl font-medium">Find by Category</h1>
