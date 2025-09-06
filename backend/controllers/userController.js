@@ -6,14 +6,9 @@ import doctorModel from "../models/doctorModel.js";
 import appointmentModel from "../models/appointmentModel.js";
 import { v2 as cloudinary } from "cloudinary";
 import stripe from "stripe";
-import razorpay from "razorpay";
 
 //Gateway Initialize
-const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
-const razorpayInstance = new razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+// const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
 
 // API to register user
 const registerUser = async (req, res) => {
@@ -359,56 +354,6 @@ const listAppointment = async (req, res) => {
   }
 };
 
-// API to make payment of appointment using razorpay
-const paymentRazorpay = async (req, res) => {
-  try {
-    const { appointmentId } = req.body;
-    const appointmentData = await appointmentModel.findById(appointmentId);
-
-    if (!appointmentData || appointmentData.cancelled) {
-      return res.json({
-        success: false,
-        message: "Appointment Cancelled or not found",
-      });
-    }
-
-    // creating options for razorpay payment
-    const options = {
-      amount: appointmentData.amount * 100,
-      currency: process.env.CURRENCY,
-      receipt: appointmentId,
-    };
-
-    // creation of an order
-    const order = await razorpayInstance.orders.create(options);
-
-    res.json({ success: true, order });
-  } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
-  }
-};
-
-// API to verify payment of razorpay
-const verifyRazorpay = async (req, res) => {
-  try {
-    const { razorpay_order_id } = req.body;
-    const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id);
-
-    if (orderInfo.status === "paid") {
-      await appointmentModel.findByIdAndUpdate(orderInfo.receipt, {
-        payment: true,
-      });
-      res.json({ success: true, message: "Payment Successful" });
-    } else {
-      res.json({ success: false, message: "Payment Failed" });
-    }
-  } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
-  }
-};
-
 // API to make payment of appointment using Stripe
 const paymentStripe = async (req, res) => {
   try {
@@ -488,71 +433,6 @@ const getUserOrders = async (req, res) => {
   }
 };
 
-// Make payment for drug order using Razorpay
-const paymentRazorpayForDrug = async (req, res) => {
-  try {
-    const { orderId } = req.body;
-    const orderData = await orderModel.findById(orderId);
-
-    if (!orderData || orderData.cancelled) {
-      return res.json({
-        success: false,
-        message: "Order not found or cancelled",
-      });
-    }
-
-    const options = {
-      amount: orderData.totalAmount * 100, // convert to smallest currency unit
-      currency: process.env.CURRENCY,
-      receipt: orderId,
-    };
-
-    const order = await razorpayInstance.orders.create(options);
-    res.json({ success: true, order });
-  } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
-  }
-};
-
-// Verify Razorpay payment for drug order
-const verifyRazorpayForDrug = async (req, res) => {
-  try {
-    const { razorpay_order_id } = req.body;
-    const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id);
-
-    if (orderInfo.status === "paid") {
-      // Update order payment status
-      const order = await orderModel.findByIdAndUpdate(
-        orderInfo.receipt,
-        {
-          payment: true,
-        },
-        { new: true }
-      );
-
-      // Update user's order history
-      await userModel.findByIdAndUpdate(order.userId, {
-        $push: { orderHistory: { orderId: order._id } },
-        $set: { cart: [] }, // clear cart after successful purchase
-      });
-
-      // Reduce drug stock
-      for (let item of order.items) {
-        await drugModel.findByIdAndUpdate(item.drugId, {
-          $inc: { stock: -item.quantity },
-        });
-      }
-
-      res.json({ success: true, message: "Payment Successful" });
-    } else {
-      res.json({ success: false, message: "Payment Failed" });
-    }
-  } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
-  }
-};
 
 export {
   loginUser,
@@ -562,15 +442,11 @@ export {
   bookAppointment,
   listAppointment,
   cancelAppointment,
-  paymentRazorpay,
-  verifyRazorpay,
   paymentStripe,
   verifyStripe,
   getUserCart,
   addToCart,
   removeFromCart,
-  verifyRazorpayForDrug,
-  paymentRazorpayForDrug,
   getUserOrders,
   getMyAppointments,
 };

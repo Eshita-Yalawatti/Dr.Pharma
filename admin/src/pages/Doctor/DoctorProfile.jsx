@@ -48,115 +48,119 @@ const DoctorProfile = () => {
 
   return (
     profileData && (
-      <div>
-        <div className="flex flex-col gap-4 m-5">
-          <div>
+      <div className="max-w-4xl mx-auto p-5">
+        <div className="flex flex-col gap-6">
+          {/* Profile Image */}
+          <div className="flex justify-center">
             <img
-              className="bg-primary/80 w-full sm:max-w-64 rounded-lg"
-              src={profileData.image}
-              alt=""
+              className="w-48 h-48 rounded-full object-cover border-4 border-primary shadow-md"
+              src={profileData.image || "/placeholder.png"} // fallback
+              alt={profileData.name || "Doctor"}
             />
           </div>
 
-          <div className="flex-1 border border-stone-100 rounded-lg p-8 py-7 bg-white">
-            {/* ----- Doc Info : name, degree, experience ----- */}
-
-            <p className="flex items-center gap-2 text-3xl font-medium text-gray-700">
-              {profileData.name}
-            </p>
-            <div className="flex items-center gap-2 mt-1 text-gray-600">
-              <p>
-                {profileData.degree} - {profileData.speciality}
+          {/* Profile Card */}
+          <div className="bg-white shadow-md rounded-xl p-8 space-y-5 border border-gray-100">
+            {/* Name and Degree */}
+            <div className="text-center">
+              <h2 className="text-3xl font-bold text-gray-800">
+                {profileData.name}
+              </h2>
+              <p className="text-gray-600 mt-1">
+                {profileData.degree} - {profileData.speciality} |{" "}
+                <span className="px-2 py-1 bg-gray-100 rounded-full text-sm font-medium">
+                  {profileData.experience} yrs
+                </span>
               </p>
-              <button className="py-0.5 px-2 border text-xs rounded-full">
-                {profileData.experience}
-              </button>
             </div>
 
-            {/* ----- Doc About ----- */}
+            {/* About Section */}
             <div>
-              <p className="flex items-center gap-1 text-sm font-medium text-[#262626] mt-3">
-                About :
-              </p>
-              <p className="text-sm text-gray-600 max-w-[700px] mt-1">
-                {isEdit ? (
-                  <textarea
-                    onChange={(e) =>
-                      setProfileData((prev) => ({
-                        ...prev,
-                        about: e.target.value,
-                      }))
-                    }
-                    type="text"
-                    className="w-full outline-primary p-2"
-                    rows={8}
-                    value={profileData.about}
-                  />
-                ) : (
-                  profileData.about
-                )}
-              </p>
+              <h3 className="text-gray-700 font-semibold mb-1">About:</h3>
+              {isEdit ? (
+                <textarea
+                  rows={5}
+                  className="w-full border border-gray-300 rounded-md p-3 outline-none focus:ring-2 focus:ring-primary"
+                  value={profileData.about}
+                  onChange={(e) =>
+                    setProfileData((prev) => ({
+                      ...prev,
+                      about: e.target.value,
+                    }))
+                  }
+                />
+              ) : (
+                <p className="text-gray-600">{profileData.about}</p>
+              )}
             </div>
 
-            <p className="text-gray-600 font-medium mt-4">
-              Appointment fee:{" "}
-              <span className="text-gray-800">
-                {currency}{" "}
-                {isEdit ? (
-                  <input
-                    type="number"
-                    onChange={(e) =>
-                      setProfileData((prev) => ({
-                        ...prev,
-                        fees: e.target.value,
-                      }))
-                    }
-                    value={profileData.fees}
-                  />
-                ) : (
-                  profileData.fees
-                )}
+            {/* Fees */}
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-gray-700">
+                Appointment Fee:
               </span>
-            </p>
+              {isEdit ? (
+                <input
+                  type="number"
+                  min="0"
+                  className="border border-gray-300 rounded-md p-1 w-32"
+                  value={profileData.fees}
+                  onChange={(e) =>
+                    setProfileData((prev) => ({
+                      ...prev,
+                      fees: e.target.value,
+                    }))
+                  }
+                />
+              ) : (
+                <span className="text-gray-800 font-semibold">
+                  {currency} {profileData.fees}
+                </span>
+              )}
+            </div>
 
-            <div className="flex gap-2 py-2">
-              <p>Address:</p>
-              <p className="text-sm">
-                {isEdit ? (
+            {/* Address */}
+            <div>
+              <h3 className="font-medium text-gray-700 mb-1">Address:</h3>
+              {isEdit ? (
+                <div className="space-y-2">
                   <input
                     type="text"
+                    className="w-full border border-gray-300 rounded-md p-2"
+                    value={profileData.address.line1}
                     onChange={(e) =>
                       setProfileData((prev) => ({
                         ...prev,
                         address: { ...prev.address, line1: e.target.value },
                       }))
                     }
-                    value={profileData.address.line1}
+                    placeholder="Line 1"
                   />
-                ) : (
-                  profileData.address.line1
-                )}
-                <br />
-                {isEdit ? (
                   <input
                     type="text"
+                    className="w-full border border-gray-300 rounded-md p-2"
+                    value={profileData.address.line2}
                     onChange={(e) =>
                       setProfileData((prev) => ({
                         ...prev,
                         address: { ...prev.address, line2: e.target.value },
                       }))
                     }
-                    value={profileData.address.line2}
+                    placeholder="Line 2"
                   />
-                ) : (
-                  profileData.address.line2
-                )}
-              </p>
+                </div>
+              ) : (
+                <p className="text-gray-600">
+                  {profileData.address.line1} <br /> {profileData.address.line2}
+                </p>
+              )}
             </div>
 
-            <div className="flex gap-1 pt-2">
+            {/* Availability */}
+            <div className="flex items-center gap-2">
               <input
                 type="checkbox"
+                checked={profileData.available}
                 onChange={() =>
                   isEdit &&
                   setProfileData((prev) => ({
@@ -164,26 +168,29 @@ const DoctorProfile = () => {
                     available: !prev.available,
                   }))
                 }
-                checked={profileData.available}
+                className="h-4 w-4 accent-primary"
               />
-              <label htmlFor="">Available</label>
+              <span className="text-gray-700">Available for Appointments</span>
             </div>
 
-            {isEdit ? (
-              <button
-                onClick={updateProfile}
-                className="px-4 py-1 border border-primary text-sm rounded-full mt-5 hover:bg-primary hover:text-white transition-all"
-              >
-                Save
-              </button>
-            ) : (
-              <button
-                onClick={() => setIsEdit((prev) => !prev)}
-                className="px-4 py-1 border border-primary text-sm rounded-full mt-5 hover:bg-primary hover:text-white transition-all"
-              >
-                Edit
-              </button>
-            )}
+            {/* Buttons */}
+            <div className="flex justify-center">
+              {isEdit ? (
+                <button
+                  onClick={updateProfile}
+                  className="px-6 py-2 bg-primary text-white font-medium rounded-full hover:bg-primary-dark transition"
+                >
+                  Save
+                </button>
+              ) : (
+                <button
+                  onClick={() => setIsEdit(true)}
+                  className="px-6 py-2 border border-primary text-primary font-medium rounded-full hover:bg-blue-500 hover:text-white transition"
+                >
+                  Edit
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

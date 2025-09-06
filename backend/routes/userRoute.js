@@ -7,8 +7,6 @@ import {
   bookAppointment,
   listAppointment,
   cancelAppointment,
-  paymentRazorpay,
-  verifyRazorpay,
   paymentStripe,
   verifyStripe,
   getUserCart,
@@ -47,8 +45,6 @@ userRouter.get("/my-appointments", authUser, listAppointment);
 userRouter.post("/cancel-appointment", authUser, cancelAppointment);
 
 // ---------------- Payment Routes ----------------
-userRouter.post("/payment-razorpay", authUser, paymentRazorpay);
-userRouter.post("/verify-razorpay", authUser, verifyRazorpay);
 userRouter.post("/payment-stripe", authUser, paymentStripe);
 userRouter.post("/verify-stripe", authUser, verifyStripe);
 

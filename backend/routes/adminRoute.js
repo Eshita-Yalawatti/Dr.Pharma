@@ -11,7 +11,7 @@ import {
   updateDrugs,
   deleteDrugs,
 } from "../controllers/adminController.js";
-import { changeAvailablity } from "../controllers/doctorController.js";
+import { changeAvailability } from "../controllers/doctorController.js";
 import authAdmin from "../middleware/authAdmin.js";
 import upload from "../middleware/multer.js";
 
@@ -23,7 +23,7 @@ adminRouter.post("/login", loginAdmin);
 // ----- Doctors -----
 adminRouter.post("/add-doctor", authAdmin, upload.single("image"), addDoctor);
 adminRouter.get("/all-doctors", authAdmin, allDoctors);
-adminRouter.post("/change-availability", authAdmin, changeAvailablity);
+adminRouter.post("/change-availability", changeAvailability);
 
 // ----- Appointments -----
 adminRouter.get("/appointments", authAdmin, appointmentsAdmin);
