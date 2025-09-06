@@ -22,10 +22,10 @@ const DrugsList = () => {
         {drugs.map((drug, index) => (
           <div
             key={index}
-            className="border border-[#C9D8FF] rounded-xl max-w-56 overflow-hidden p-4"
+            className="border border-indigo-200 rounded-xl max-w-56 overflow-hidden p-4 cursor-pointer group"
           >
             <img
-              className="bg-[#EAEFFF] mb-2"
+              className="bg-indigo-50 group-hover:bg-[#5f6FFF] transition-all duration-500"
               src={drug.image}
               alt={drug.name}
             />

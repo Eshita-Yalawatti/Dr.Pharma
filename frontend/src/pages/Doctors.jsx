@@ -3,35 +3,107 @@ import { useNavigate, useParams } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 
 const Doctors = () => {
-  const { specialty } = useParams();
+  const { speciality } = useParams();
   const [filterDoc, setFilterDoc] = useState([]);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const { doctors } = useContext(AppContext);
 
   const applyFilter = () => {
-    if (specialty) {
-      setFilterDoc(doctors.filter(doc => doc.specialty === specialty))
+    console.log("All Doctors:", doctors);
+    console.log("Selected speciality:", speciality);
+    if (speciality) {
+      setFilterDoc(doctors.filter((doc) => doc.speciality === speciality));
     } else {
-      setFilterDoc(doctors)
+      setFilterDoc(doctors);
     }
-  }
+  };
 
-  useEffect(()=>{
-    applyFilter()
-  }, [doctors,specialty])
+  useEffect(() => {
+    applyFilter();
+  }, [doctors, speciality]);
 
   return (
     <div>
-      <p className="text-gray-600">Browse through the doctors specialty.</p>
+      <p className="text-gray-600">Browse through the doctors speciality.</p>
       <div className="flex flex-col sm:flex-row items-start gap-5 mt-5">
         <div className="flex flex-col gap-4 text-sm text-gray-600">
-          <p onClick={()=> specialty === 'General physician' ? navigate('/doctors') : navigate('/doctors/General physician')} className={`w-[94vw] sm:w-auto pl-3 py-1.5 pr-16 border border-gray-300 rounded transition-all cursor-pointer ${specialty === "General physician" ? "bg-indigo-100 text-black" : ""}`}>General physician</p>
-          <p onClick={()=> specialty === 'Gynecologist' ? navigate('/doctors') : navigate('/doctors/Gynecologist')} className={`w-[94vw] sm:w-auto pl-3 py-1.5 pr-16 border border-gray-300 rounded transition-all cursor-pointer ${specialty === "Gynecologist" ? "bg-indigo-100 text-black" : ""}`}>Gynecologist</p>
-          <p onClick={()=> specialty === 'Dermatologist' ? navigate('/doctors') : navigate('/doctors/Dermatologist')} className={`w-[94vw] sm:w-auto pl-3 py-1.5 pr-16 border border-gray-300 rounded transition-all cursor-pointer ${specialty === "Dermatologist" ? "bg-indigo-100 text-black" : ""}`}>Dermatologist</p>
-          <p onClick={()=> specialty === 'Pediatricians' ? navigate('/doctors') : navigate('/doctors/Pediatricians')} className={`w-[94vw] sm:w-auto pl-3 py-1.5 pr-16 border border-gray-300 rounded transition-all cursor-pointer ${specialty === "Pediatricians" ? "bg-indigo-100 text-black" : ""}`}>Pediatricians</p>
-          <p onClick={()=> specialty === 'Neurologist' ? navigate('/doctors') : navigate('/doctors/Neurologist')} className={`w-[94vw] sm:w-auto pl-3 py-1.5 pr-16 border border-gray-300 rounded transition-all cursor-pointer ${specialty === "Neurologist" ? "bg-indigo-100 text-black" : ""}`}>Neurologist</p>
-          <p onClick={()=> specialty === 'Gastroenterologist' ? navigate('/doctors') : navigate('/doctors/Gastroenterologist')} className={`w-[94vw] sm:w-auto pl-3 py-1.5 pr-16 border border-gray-300 rounded transition-all cursor-pointer ${specialty === "Gastroenterologist" ? "bg-indigo-100 text-black" : ""}`}>Gastroenterologist</p>
+          <p
+            onClick={() =>
+              speciality === "General physician"
+                ? navigate("/doctors")
+                : navigate("/doctors/General physician")
+            }
+            className={`w-[94vw] sm:w-auto pl-3 py-1.5 pr-16 border border-gray-300 rounded transition-all cursor-pointer ${
+              speciality === "General physician"
+                ? "bg-indigo-100 text-black"
+                : ""
+            }`}
+          >
+            General physician
+          </p>
+          <p
+            onClick={() =>
+              speciality === "Gynecologist"
+                ? navigate("/doctors")
+                : navigate("/doctors/Gynecologist")
+            }
+            className={`w-[94vw] sm:w-auto pl-3 py-1.5 pr-16 border border-gray-300 rounded transition-all cursor-pointer ${
+              speciality === "Gynecologist" ? "bg-indigo-100 text-black" : ""
+            }`}
+          >
+            Gynecologist
+          </p>
+          <p
+            onClick={() =>
+              speciality === "Dermatologist"
+                ? navigate("/doctors")
+                : navigate("/doctors/Dermatologist")
+            }
+            className={`w-[94vw] sm:w-auto pl-3 py-1.5 pr-16 border border-gray-300 rounded transition-all cursor-pointer ${
+              speciality === "Dermatologist" ? "bg-indigo-100 text-black" : ""
+            }`}
+          >
+            Dermatologist
+          </p>
+          <p
+            onClick={() =>
+              speciality === "Pediatricians"
+                ? navigate("/doctors")
+                : navigate("/doctors/Pediatricians")
+            }
+            className={`w-[94vw] sm:w-auto pl-3 py-1.5 pr-16 border border-gray-300 rounded transition-all cursor-pointer ${
+              speciality === "Pediatricians" ? "bg-indigo-100 text-black" : ""
+            }`}
+          >
+            Pediatricians
+          </p>
+          <p
+            onClick={() =>
+              speciality === "Neurologist"
+                ? navigate("/doctors")
+                : navigate("/doctors/Neurologist")
+            }
+            className={`w-[94vw] sm:w-auto pl-3 py-1.5 pr-16 border border-gray-300 rounded transition-all cursor-pointer ${
+              speciality === "Neurologist" ? "bg-indigo-100 text-black" : ""
+            }`}
+          >
+            Neurologist
+          </p>
+          <p
+            onClick={() =>
+              speciality === "Gastroenterologist"
+                ? navigate("/doctors")
+                : navigate("/doctors/Gastroenterologist")
+            }
+            className={`w-[94vw] sm:w-auto pl-3 py-1.5 pr-16 border border-gray-300 rounded transition-all cursor-pointer ${
+              speciality === "Gastroenterologist"
+                ? "bg-indigo-100 text-black"
+                : ""
+            }`}
+          >
+            Gastroenterologist
+          </p>
         </div>
 
         <div className="w-full grid grid-auto-fill gap-4 gap-y-6">
@@ -48,7 +120,7 @@ const Doctors = () => {
                   <p>Available</p>
                 </div>
                 <p className="text-gray-900 text-lg font-medium">{item.name}</p>
-                <p className="text-gray-600 text-sm">{item.specialty}</p>
+                <p className="text-gray-600 text-sm">{item.speciality}</p>
               </div>
             </div>
           ))}

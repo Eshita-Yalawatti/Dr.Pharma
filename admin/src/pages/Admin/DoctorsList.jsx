@@ -17,11 +17,11 @@ const DoctorsList = () => {
       <div className="w-full flex flex-wrap gap-4 pt-5 gap-y-6">
         {doctors.map((item, index) => (
           <div
-            className="border border-[#C9D8FF] rounded-xl max-w-56 overflow-hidden cursor-pointer group"
+            className="border border-indigo-200 rounded-xl max-w-56 overflow-hidden cursor-pointer group"
             key={index}
           >
             <img
-              className="bg-[#EAEFFF] group-hover:bg-primary transition-all duration-500"
+              className="bg-indigo-50 group-hover:bg-[#5f6FFF] transition-all duration-500"
               src={item.image}
               alt=""
             />

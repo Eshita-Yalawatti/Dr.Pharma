@@ -26,7 +26,7 @@ const App = () => {
         <Route path='/' element={<Home />}/>
         <Route path='/doctors' element={<Doctors />}/>
         <Route path='/drugs' element={<DrugStore />}/>
-        <Route path='/doctors/:specialty' element={<Doctors />}/>
+        <Route path='/doctors/:speciality' element={<Doctors />}/>
         <Route path='/drugs/:category' element={<DrugStore />}/>
         <Route path='/login' element={<Login />}/>
         <Route path='/about' element={<About />}/>
@@ -40,6 +40,8 @@ const App = () => {
         <Route path='/drugstore' element={<DrugStore />}/>
         <Route path='/drugstore/:category' element={<DrugStore />}/>
         <Route path='/verify' element={<Verify />} />
+        <Route path='/my-cart' element={<MyCart />} />
+
       </Routes>
       <Footer/>
     </div>
