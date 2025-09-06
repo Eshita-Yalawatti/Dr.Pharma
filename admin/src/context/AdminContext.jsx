@@ -140,9 +140,9 @@ const AdminContextProvider = (props) => {
     cancelAppointment,
     drugs,
     getAllDrugs,
-    orders, // ✅ orders state
-    getAllOrders, // ✅ fetch orders
-    updateOrderStatus, // ✅ complete/cancel orders
+    orders,
+    getAllOrders, 
+    updateOrderStatus, 
     dashData,
     getDashData,
   };

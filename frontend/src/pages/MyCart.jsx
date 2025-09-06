@@ -6,14 +6,8 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 const MyCart = () => {
-  const {
-    cart,
-    setCart,
-    backendUrl,
-    token,
-    currencySymbol,
-    loadUserCart,
-  } = useContext(AppContext);
+  const { cart, setCart, backendUrl, token, currencySymbol, loadUserCart } =
+    useContext(AppContext);
   const navigate = useNavigate();
 
   const [discount, setDiscount] = useState(0);
@@ -36,23 +30,29 @@ const MyCart = () => {
       );
       if (data.success) {
         await loadUserCart(); // refresh cart from backend
-        toast.success(data.message);
+        toast.success(data.message || "Removed from cart");
       }
     } catch (error) {
       toast.error(error.message);
     }
   };
 
-  // Apply discount (example 10%)
+  // Apply discount
   const applyDiscount = () => {
+    if (cart.some((item) => item.quantity > item.stock)) {
+      return toast.error("Some items are out of stock!");
+    }
     if (discount > 0) return toast.info("Discount already applied");
-    const disc = subtotal * 0.1; // 10% discount
+    const disc = subtotal * 0.1;
     setDiscount(disc);
     toast.success("10% discount applied!");
   };
 
-  // Handle Pay Now (simulate)
+  // Handle Pay Now
   const handlePayNow = () => {
+    if (cart.some((item) => item.quantity > item.stock)) {
+      return toast.error("Some items are out of stock!");
+    }
     if (cart.length === 0) return toast.info("Cart is empty");
     setIsPaid(true);
     toast.success("Payment successful!");
@@ -60,6 +60,9 @@ const MyCart = () => {
 
   // Handle Order Now
   const handleOrderNow = async () => {
+    if (cart.some((item) => item.quantity > item.stock)) {
+      return toast.error("Some items are out of stock!");
+    }
     if (!isPaid) return toast.info("Please pay first");
     try {
       const { data } = await axios.post(
@@ -79,8 +82,11 @@ const MyCart = () => {
   };
 
   useEffect(() => {
-    loadUserCart(); // load cart initially
+    loadUserCart();
   }, []);
+
+  // Check if any item is out of stock
+  const hasOutOfStock = cart.some((item) => item.quantity > item.stock);
 
   return (
     <div className="max-w-4xl mx-auto my-10 px-4 sm:px-6 space-y-6">
@@ -105,37 +111,47 @@ const MyCart = () => {
       {/* Cart Items */}
       <div className="space-y-4">
         {cart.length === 0 && <p>Your cart is empty.</p>}
-        {cart.map((item) => (
-          <div
-            key={item._id || item.drugId._id}
-            className="flex justify-between items-center border rounded p-4 bg-white"
-          >
-            <div className="flex items-center gap-4">
-              <img
-                src={item.image}
-                alt={item.name}
-                className="w-16 h-16 object-contain"
-              />
-              <div>
-                <p className="font-medium">{item.name}</p>
-                <p className="text-gray-600">
-                  Quantity: {item.quantity} | Unit Price: {currencySymbol}
-                  {item.price}
-                </p>
-                <p className="text-gray-700 font-medium">
-                  Total: {currencySymbol}
-                  {item.quantity * item.price}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => removeItem(item._id || item.drugId._id)}
-              className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+        {cart.map((item) => {
+          const isOutOfStock = item.quantity > item.stock;
+          return (
+            <div
+              key={item._id}
+              className="flex justify-between items-center border rounded p-4 bg-white"
             >
-              Remove
-            </button>
-          </div>
-        ))}
+              <div className="flex items-center gap-4">
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="w-16 h-16 object-contain"
+                />
+                <div>
+                  <p className="font-medium">{item.name}</p>
+                  <p className="text-gray-600">
+                    Quantity: {item.quantity} | Unit Price: {currencySymbol}
+                    {item.price}
+                  </p>
+                  <p className="text-gray-700 font-medium">
+                    Total: {currencySymbol}
+                    {item.quantity * item.price}
+                  </p>
+                  <p
+                    className={`font-semibold ${
+                      isOutOfStock ? "text-red-500" : "text-green-500"
+                    }`}
+                  >
+                    {isOutOfStock ? "Out of Stock" : "In Stock"}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => removeItem(item._id)}
+                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                Remove
+              </button>
+            </div>
+          );
+        })}
       </div>
 
       {/* Order Summary */}
@@ -157,18 +173,24 @@ const MyCart = () => {
         <div className="flex gap-3 mt-3 flex-wrap">
           <button
             onClick={applyDiscount}
-            className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+            className={`px-4 py-2 rounded text-white 
+               ${
+                hasOutOfStock
+                ? "bg-yellow-500 cursor-not-allowed"
+                : "bg-yellow-500 hover:bg-yellow-300"
+              }`}
+            disabled={hasOutOfStock}
           >
             Get 10% Discount
           </button>
           <button
             onClick={handlePayNow}
             className={`px-4 py-2 rounded text-white ${
-              isPaid
-                ? "bg-green-400 cursor-not-allowed"
+              isPaid|| hasOutOfStock
+                ? "bg-green-300 cursor-not-allowed" 
                 : "bg-green-500 hover:bg-green-600"
             }`}
-            disabled={isPaid}
+            disabled={isPaid || hasOutOfStock}
           >
             {isPaid ? "Paid" : "Pay Now"}
           </button>
@@ -177,7 +199,7 @@ const MyCart = () => {
             className={`px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 ${
               !isPaid ? "opacity-50 cursor-not-allowed" : ""
             }`}
-            disabled={!isPaid}
+            disabled={!isPaid || hasOutOfStock}
           >
             Order Now
           </button>

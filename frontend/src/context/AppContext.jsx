@@ -54,26 +54,25 @@ const AppContextProvider = (props) => {
   };
 
   // ================= CART =================
+  // ================= USER CART =================
   const loadUserCart = async () => {
     if (!token) return setCart([]);
     try {
       const { data } = await axios.get(`${backendUrl}/api/user/cart`, {
-        // <-- fixed here
         headers: { token },
       });
       if (data.success) {
-        setCart(
-          data.cart.map((d) => ({
-            _id: d.drugId._id,
-            name: d.drugId.name,
-            image: d.drugId.image,
-            price: d.drugId.price,
-            quantity: d.quantity,
-            discount: d.discount,
-            isPaid: d.isPaid,
-            totalPrice: d.quantity * d.drugId.price,
-          }))
-        );
+        // Add stock info from drugId
+        const updatedCart = data.cart.map((item) => ({
+          _id: item.drugId._id,
+          name: item.drugId.name,
+          image: item.drugId.image,
+          price: item.drugId.price,
+          quantity: item.quantity,
+          stock: item.drugId.stock, // ✅ include stock
+          totalPrice: item.quantity * item.drugId.price,
+        }));
+        setCart(updatedCart);
       }
     } catch (error) {
       console.error("Error loading cart:", error);

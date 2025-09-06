@@ -246,7 +246,6 @@ const addDrugs = async (req, res) => {
   }
 };
 
-
 // Update drug (admin)
 const updateDrugs = async (req, res) => {
   try {
@@ -298,11 +297,27 @@ const allOrders = async (req, res) => {
 const updateOrderStatus = async (req, res) => {
   try {
     const { orderId, status } = req.body;
+
     if (!["pending", "completed", "cancelled"].includes(status)) {
       return res.json({ success: false, message: "Invalid status" });
     }
 
-    await orderModel.findByIdAndUpdate(orderId, { status });
+    const order = await orderModel.findById(orderId).populate("drugs.drugId");
+    if (!order) return res.json({ success: false, message: "Order not found" });
+
+    order.status = status;
+    await order.save();
+
+    if (status === "completed") {
+      for (let item of order.drugs) {
+        if (item.drugId && item.quantity) {
+          await drugModel.findByIdAndUpdate(item.drugId._id, {
+            $inc: { stock: -item.quantity },
+          });
+        }
+      }
+    }
+
     res.json({ success: true, message: `Order marked as ${status}` });
   } catch (error) {
     console.log(error);
