@@ -1,11 +1,15 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect } from "react";
 import { AppContext } from "../context/AppContext";
-import axios from "axios";
 import { toast } from "react-toastify";
 
 const MyAppointments = () => {
-  const { backendUrl, token, getDoctorsData } = useContext(AppContext);
-  const [appointments, setAppointments] = useState([]);
+  const {
+    token,
+    appointments,
+    getUserAppointments,
+    getDoctorsData,
+    backendUrl,
+  } = useContext(AppContext);
 
   const months = [
     "",
@@ -28,26 +32,17 @@ const MyAppointments = () => {
     return `${dateArray[0]} ${months[Number(dateArray[1])]} ${dateArray[2]}`;
   };
 
-  // fetch user appointments
-  const getUserAppointments = async () => {
-    try {
-      const { data } = await axios.get(`${backendUrl}/api/user/appointments`, {
-        headers: { token },
-      });
-      if (data.success) setAppointments(data.appointments.reverse());
-    } catch (error) {
-      toast.error(error.message);
-    }
-  };
-
-  // cancel appointment
   const cancelAppointment = async (appointmentId) => {
     try {
-      const { data } = await axios.post(
-        `${backendUrl}/api/user/cancel-appointment`,
-        { appointmentId },
-        { headers: { token } }
-      );
+      const data = await fetch(`${backendUrl}/api/user/cancel-appointment`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          token,
+        },
+        body: JSON.stringify({ appointmentId }),
+      }).then((res) => res.json());
+
       if (data.success) {
         toast.success(data.message);
         getUserAppointments();
@@ -58,14 +53,17 @@ const MyAppointments = () => {
     }
   };
 
-  // book appointment (example: you can call this on click)
   const bookAppointment = async (docId, slotDate, slotTime) => {
     try {
-      const { data } = await axios.post(
-        `${backendUrl}/api/user/book-appointment`,
-        { docId, slotDate, slotTime },
-        { headers: { token } } // token will be used in middleware
-      );
+      const data = await fetch(`${backendUrl}/api/user/book-appointment`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          token,
+        },
+        body: JSON.stringify({ docId, slotDate, slotTime }),
+      }).then((res) => res.json());
+
       if (data.success) {
         toast.success(data.message);
         getUserAppointments();
@@ -76,9 +74,16 @@ const MyAppointments = () => {
     }
   };
 
+  // Load appointments when token changes
   useEffect(() => {
     if (token) getUserAppointments();
   }, [token]);
+
+  // Sort appointments: latest first
+  const sortedAppointments =
+    appointments && appointments.length > 0
+      ? [...appointments].sort((a, b) => new Date(b.date) - new Date(a.date))
+      : [];
 
   return (
     <div>
@@ -86,65 +91,66 @@ const MyAppointments = () => {
         My appointments
       </p>
       <div>
-        {appointments.map((item, index) => (
-          <div
-            key={index}
-            className="grid grid-cols-[1fr_2fr] gap-4 sm:flex sm:gap-6 py-2 border-b"
-          >
-            <div>
-              <img
-                className="w-32 bg-indigo-50"
-                src={item.docData.image}
-                alt=""
-              />
-            </div>
-            <div className="flex-1 text-sm text-zinc-600">
-              <p className="text-neutral-800 font-semibold">
-                {item.docData.name}
-              </p>
-              <p>{item.docData.speciality}</p>
-              <p className="text-zinc-700 font-medium mt-1">Address:</p>
-              <p className="text-xs">{item.docData.address.line1}</p>
-              <p className="text-xs">{item.docData.address.line2}</p>
-              <p className="text-xs mt-1">
-                <span className="text-sm text-neutral-700 font-medium">
-                  Date & Time:
-                </span>{" "}
-                {slotDateFormat(item.slotDate)} | {item.slotTime}
-              </p>
-            </div>
-            <div className="flex flex-col gap-2 justify-end">
-              {!item.cancelled && !item.isCompleted && (
-                <>
-                  <button
-                    onClick={() =>
-                      bookAppointment(item.docId, item.slotDate, item.slotTime)
-                    }
-                    className="text-sm text-stone-500 sm:min-w-48 py-2 border rounded hover:bg-primary hover:text-white transition-all duration-300"
-                  >
-                    Pay & Confirm
+        {sortedAppointments.length > 0 ? (
+          sortedAppointments.map((item, index) => (
+            <div
+              key={index}
+              className="grid grid-cols-[1fr_2fr] gap-4 sm:flex sm:gap-6 py-2 border-b"
+            >
+              <div>
+                <img
+                  className="w-32 bg-indigo-50"
+                  src={item.docData.image}
+                  alt=""
+                />
+              </div>
+              <div className="flex-1 text-sm text-zinc-600">
+                <p className="text-neutral-800 font-semibold">
+                  {item.docData.name}
+                </p>
+                <p>{item.docData.speciality}</p>
+                <p className="text-zinc-700 font-medium mt-1">Address:</p>
+                <p className="text-xs">{item.docData.address.line1}</p>
+                <p className="text-xs">{item.docData.address.line2}</p>
+                <p className="text-xs mt-1">
+                  <span className="text-sm text-neutral-700 font-medium">
+                    Date & Time:
+                  </span>{" "}
+                  {slotDateFormat(item.slotDate)} | {item.slotTime}
+                </p>
+              </div>
+              <div className="flex flex-col gap-2 justify-end">
+                {!item.cancelled && !item.isCompleted && (
+                  <>
+                    <button
+                      className="text-sm text-stone-500 sm:min-w-48 py-2 border rounded hover:bg-blue-600 hover:text-white transition-all duration-300"
+                    >
+                      Pay & Confirm
+                    </button>
+                    <button
+                      onClick={() => cancelAppointment(item._id)}
+                      className="text-sm text-stone-500 sm:min-w-48 py-2 border rounded hover:bg-red-600 hover:text-white transition-all duration-300"
+                    >
+                      Cancel appointment
+                    </button>
+                  </>
+                )}
+                {item.cancelled && !item.isCompleted && (
+                  <button className="sm:min-w-48 py-2 border border-red-500 rounded text-red-500">
+                    Appointment cancelled
                   </button>
-                  <button
-                    onClick={() => cancelAppointment(item._id)}
-                    className="text-sm text-stone-500 sm:min-w-48 py-2 border rounded hover:bg-red-600 hover:text-white transition-all duration-300"
-                  >
-                    Cancel appointment
+                )}
+                {item.isCompleted && (
+                  <button className="sm:min-w-48 py-2 border border-green-500 rounded text-green-500">
+                    Completed
                   </button>
-                </>
-              )}
-              {item.cancelled && !item.isCompleted && (
-                <button className="sm:min-w-48 py-2 border border-red-500 rounded text-red-500">
-                  Appointment cancelled
-                </button>
-              )}
-              {item.isCompleted && (
-                <button className="sm:min-w-48 py-2 border border-green-500 rounded text-green-500">
-                  Completed
-                </button>
-              )}
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <p className="text-zinc-500 py-4">No appointments found.</p>
+        )}
       </div>
     </div>
   );

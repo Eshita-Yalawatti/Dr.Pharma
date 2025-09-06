@@ -81,6 +81,26 @@ const AppContextProvider = (props) => {
     }
   };
 
+  // ================= USER APPOINTMENTS =================
+  const [appointments, setAppointments] = useState([]);
+
+  const getUserAppointments = async () => {
+    if (!token) return;
+    try {
+      const { data } = await axios.get(
+        `${backendUrl}/api/user/my-appointments`,
+        {
+          headers: { token },
+        }
+      );
+      if (data.success) setAppointments(data.appointments.reverse());
+      else toast.error(data.message);
+    } catch (error) {
+      console.error("Error fetching appointments:", error);
+      toast.error(error.message);
+    }
+  };
+
   const addToCart = async (drug, qty = 1) => {
     if (!token) return toast.info("Please login first");
     try {
@@ -175,6 +195,8 @@ const AppContextProvider = (props) => {
     removeFromCart,
     clearCart,
     loadUserCart,
+    appointments,
+    getUserAppointments
   };
 
   return (

@@ -43,7 +43,7 @@ userRouter.post(
 
 // ---------------- Appointment Routes ----------------
 userRouter.post("/book-appointment", authUser, bookAppointment);
-userRouter.get("/appointments", authUser, listAppointment);
+userRouter.get("/my-appointments", authUser, listAppointment);
 userRouter.post("/cancel-appointment", authUser, cancelAppointment);
 
 // ---------------- Payment Routes ----------------

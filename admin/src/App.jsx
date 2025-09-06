@@ -26,22 +26,27 @@ const App = () => {
     <div className="bg-[#F8F9FD]">
       <ToastContainer />
       <Navbar />
-      <div className="flex items-start">
-        <Sidebar />
-        <Routes>
-          <Route path="/" element={<Dashboard/>} />
-          <Route path="/admin-dashboard" element={<Dashboard />} />
-          <Route path="/all-appointments" element={<AllAppointments />} />
-          <Route path="/all-orders" element={<AllOrders />} />
-          <Route path="/add-doctor" element={<AddDoctor />} />
-          <Route path="/add-drug" element={<AddDrug />} />
-          <Route path="/update-drug/:id" element={<AddDrug />} />
-          <Route path="/doctor-list" element={<DoctorsList />} />
-          <Route path="/drug-list" element={<DrugsList />} />
-          <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
-          <Route path="/doctor-appointments" element={<DoctorAppointments />} />
-          <Route path="/doctor-profile" element={<DoctorProfile />} />
-        </Routes>
+      <div className="flex h-screen">
+        <Sidebar className="h-full" /> {/* ensures sidebar takes full height */}
+        <div className="flex-1 h-full overflow-y-auto">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/admin-dashboard" element={<Dashboard />} />
+            <Route path="/all-appointments" element={<AllAppointments />} />
+            <Route path="/all-orders" element={<AllOrders />} />
+            <Route path="/add-doctor" element={<AddDoctor />} />
+            <Route path="/add-drug" element={<AddDrug />} />
+            <Route path="/update-drug/:id" element={<AddDrug />} />
+            <Route path="/doctor-list" element={<DoctorsList />} />
+            <Route path="/drug-list" element={<DrugsList />} />
+            <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
+            <Route
+              path="/doctor-appointments"
+              element={<DoctorAppointments />}
+            />
+            <Route path="/doctor-profile" element={<DoctorProfile />} />
+          </Routes>
+        </div>
       </div>
     </div>
   ) : (

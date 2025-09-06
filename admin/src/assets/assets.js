@@ -15,6 +15,7 @@ import medicine_icon from './medicine_icon.png'
 import add_medicine_icon from './add_medicine_icon.svg'
 import drug_list from './drug_list.svg'
 import order_icon from './order_icon.svg'
+import order from './orders.svg'
 
 export const assets = {
     add_icon,
@@ -33,5 +34,6 @@ export const assets = {
     medicine_icon,
     add_medicine_icon,
     drug_list,
-    order_icon
+    order_icon,
+    order
 }

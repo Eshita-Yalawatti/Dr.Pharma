@@ -162,6 +162,7 @@ const adminDashboard = async (req, res) => {
       appointments: appointments.length,
       patients: users.length,
       drugs: drugs.length,
+      orders: orders.length,
       latestAppointments: Array.isArray(appointments)
         ? appointments.slice(-5).reverse()
         : [],

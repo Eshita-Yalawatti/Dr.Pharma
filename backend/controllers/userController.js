@@ -8,12 +8,12 @@ import { v2 as cloudinary } from "cloudinary";
 import stripe from "stripe";
 import razorpay from "razorpay";
 
-// Gateway Initialize
-//const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
-// const razorpayInstance = new razorpay({
-//   key_id: process.env.RAZORPAY_KEY_ID,
-//   key_secret: process.env.RAZORPAY_KEY_SECRET,
-// });
+//Gateway Initialize
+const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
+const razorpayInstance = new razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
 
 // API to register user
 const registerUser = async (req, res) => {
@@ -142,7 +142,20 @@ const updateProfile = async (req, res) => {
 const bookAppointment = async (req, res) => {
   try {
     const { docId, slotDate, slotTime } = req.body;
-    const userId = req.userId; // middleware থেকে আসবে
+    const userId = req.userId;
+
+    // checking for slot availability (update)
+    const existingAppointment = await appointmentModel.findOne({
+      docId,
+      slotDate,
+      slotTime,
+      booked: true,
+      cancelled: false,
+    });
+
+    if (existingAppointment) {
+      return res.json({ success: false, message: "Slot already booked" });
+    }
 
     if (!userId)
       return res.json({ success: false, message: "User not logged in" });
@@ -182,6 +195,8 @@ const bookAppointment = async (req, res) => {
       slotTime,
       slotDate,
       date: Date.now(),
+      booked: true,
+      payment: false,
     };
 
     const newAppointment = new appointmentModel(appointmentData);
@@ -211,6 +226,24 @@ const getUserCart = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// API to get user appointments (for MyAppointments page)
+const getMyAppointments = async (req, res) => {
+  try {
+    const userId = req.userId; // middleware should extract userId from token
+    if (!userId)
+      return res.json({ success: false, message: "User not logged in" });
+
+    const appointments = await appointmentModel
+      .find({ userId })
+      .sort({ date: -1 });
+
+    res.json({ success: true, appointments });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
   }
 };
 
@@ -265,30 +298,40 @@ const removeFromCart = async (req, res) => {
 // API to cancel appointment
 const cancelAppointment = async (req, res) => {
   try {
-    const { userId, appointmentId } = req.body;
-    const appointmentData = await appointmentModel.findById(appointmentId);
+    const userId = req.userId; // from middleware
+    const { appointmentId } = req.body;
 
-    // verify appointment user
-    if (appointmentData.userId !== userId) {
+    if (!userId)
+      return res.json({ success: false, message: "User not logged in" });
+
+    const appointmentData = await appointmentModel.findById(appointmentId);
+    if (!appointmentData)
+      return res.json({ success: false, message: "Appointment not found" });
+
+    // verify ownership
+    if (appointmentData.userId.toString() !== userId) {
       return res.json({ success: false, message: "Unauthorized action" });
     }
 
     await appointmentModel.findByIdAndUpdate(appointmentId, {
       cancelled: true,
+      booked: false,
     });
 
-    // releasing doctor slot
+    // free doctor slot
     const { docId, slotDate, slotTime } = appointmentData;
-
     const doctorData = await doctorModel.findById(docId);
 
-    let slots_booked = doctorData.slots_booked;
+    if (doctorData.slots_booked && doctorData.slots_booked[slotDate]) {
+      // only filter if the date exists
+      doctorData.slots_booked[slotDate] = doctorData.slots_booked[
+        slotDate
+      ].filter((e) => e !== slotTime);
 
-    slots_booked[slotDate] = slots_booked[slotDate].filter(
-      (e) => e !== slotTime
-    );
-
-    await doctorModel.findByIdAndUpdate(docId, { slots_booked });
+      await doctorModel.findByIdAndUpdate(docId, {
+        slots_booked: doctorData.slots_booked,
+      });
+    }
 
     res.json({ success: true, message: "Appointment Cancelled" });
   } catch (error) {
@@ -300,9 +343,15 @@ const cancelAppointment = async (req, res) => {
 // API to get user appointments for frontend my-appointments page
 const listAppointment = async (req, res) => {
   try {
-    const { userId } = req.body;
-    const appointments = await appointmentModel.find({ userId });
+    const userId = req.userId; // 👈 from middleware
 
+    if (!userId) {
+      return res.json({ success: false, message: "User not logged in" });
+    }
+
+    const appointments = await appointmentModel
+      .find({ userId })
+      .sort({ date: -1 });
     res.json({ success: true, appointments });
   } catch (error) {
     console.log(error);
@@ -523,4 +572,5 @@ export {
   verifyRazorpayForDrug,
   paymentRazorpayForDrug,
   getUserOrders,
+  getMyAppointments,
 };
