@@ -175,10 +175,10 @@ const MyCart = () => {
             onClick={applyDiscount}
             className={`px-4 py-2 rounded text-white 
                ${
-                hasOutOfStock
-                ? "bg-yellow-500 cursor-not-allowed"
-                : "bg-yellow-500 hover:bg-yellow-300"
-              }`}
+                 hasOutOfStock
+                   ? "bg-yellow-500 cursor-not-allowed"
+                   : "bg-yellow-500 hover:bg-yellow-300"
+               }`}
             disabled={hasOutOfStock}
           >
             Get 10% Discount
@@ -186,8 +186,8 @@ const MyCart = () => {
           <button
             onClick={handlePayNow}
             className={`px-4 py-2 rounded text-white ${
-              isPaid|| hasOutOfStock
-                ? "bg-green-300 cursor-not-allowed" 
+              isPaid || hasOutOfStock
+                ? "bg-green-300 cursor-not-allowed"
                 : "bg-green-500 hover:bg-green-600"
             }`}
             disabled={isPaid || hasOutOfStock}

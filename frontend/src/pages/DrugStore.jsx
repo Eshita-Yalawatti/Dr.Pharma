@@ -145,7 +145,9 @@ const DrugStore = () => {
                     </p>
                   </div>
 
-                  <p className="text-gray-900 text-lg font-medium">{drug.name}</p>
+                  <p className="text-gray-900 text-lg font-medium">
+                    {drug.name}
+                  </p>
                   <p className="text-gray-600 text-sm mb-1">{drug.category}</p>
 
                   {/* Quantity selector */}

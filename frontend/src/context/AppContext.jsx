@@ -196,7 +196,7 @@ const AppContextProvider = (props) => {
     clearCart,
     loadUserCart,
     appointments,
-    getUserAppointments
+    getUserAppointments,
   };
 
   return (

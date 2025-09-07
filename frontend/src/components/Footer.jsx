@@ -11,7 +11,7 @@ const Footer = () => {
           <p className="w-full md:w-2/3 text-gray-600 leading-6">
             We connect you with trusted healthcare professionals and provide
             easy access to genuine medicines. Book doctor appointments online
-            and get your prescribed medicines delivered to your doorstep 
+            and get your prescribed medicines delivered to your doorstep
             securely and conveniently.
           </p>
         </div>

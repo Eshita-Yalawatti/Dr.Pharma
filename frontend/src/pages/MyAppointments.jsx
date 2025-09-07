@@ -53,27 +53,6 @@ const MyAppointments = () => {
     }
   };
 
-  const bookAppointment = async (docId, slotDate, slotTime) => {
-    try {
-      const data = await fetch(`${backendUrl}/api/user/book-appointment`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          token,
-        },
-        body: JSON.stringify({ docId, slotDate, slotTime }),
-      }).then((res) => res.json());
-
-      if (data.success) {
-        toast.success(data.message);
-        getUserAppointments();
-        getDoctorsData();
-      } else toast.error(data.message);
-    } catch (error) {
-      toast.error(error.message);
-    }
-  };
-
   // Load appointments when token changes
   useEffect(() => {
     if (token) getUserAppointments();
@@ -122,9 +101,7 @@ const MyAppointments = () => {
               <div className="flex flex-col gap-2 justify-end">
                 {!item.cancelled && !item.isCompleted && (
                   <>
-                    <button
-                      className="text-sm text-stone-500 sm:min-w-48 py-2 border rounded hover:bg-blue-600 hover:text-white transition-all duration-300"
-                    >
+                    <button className="text-sm text-stone-500 sm:min-w-48 py-2 border rounded hover:bg-blue-600 hover:text-white transition-all duration-300">
                       Pay & Confirm
                     </button>
                     <button

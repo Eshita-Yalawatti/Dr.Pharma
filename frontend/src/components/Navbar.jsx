@@ -121,7 +121,9 @@ const Navbar = () => {
               <p className="px-4 py-2 rounded full inline-block">ALL DOCTORS</p>
             </NavLink>
             <NavLink onClick={() => setShowMenu(false)} to="/drugs">
-              <p className="px-4 py-2 rounded full inline-block">ALL MEDICINES</p>
+              <p className="px-4 py-2 rounded full inline-block">
+                ALL MEDICINES
+              </p>
             </NavLink>
             <NavLink onClick={() => setShowMenu(false)} to="/about">
               <p className="px-4 py-2 rounded full inline-block">ABOUT</p>
