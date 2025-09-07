@@ -7,12 +7,14 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   const [showMenu, setShowMenu] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false); // for mobile dropdown
   const { token, setToken, userData } = useContext(AppContext);
 
   const logout = () => {
     localStorage.removeItem("token");
     setToken(false);
     navigate("/login");
+    setShowDropdown(false);
   };
 
   return (
@@ -48,10 +50,17 @@ const Navbar = () => {
 
       <div className="flex items-center gap-4 ">
         {token && userData ? (
-          <div className="flex items-center gap-2 cursor-pointer group relative">
+          <div className="flex items-center gap-2 cursor-pointer relative">
             <img className="w-8 rounded-full" src={userData.image} alt="" />
-            <img className="w-2.5" src={assets.dropdown_icon} alt="" />
-            <div className="absolute top-0 right-0 pt-14 text-base font-medium text-gray-600 z-20 hidden group-hover:block">
+            <img
+              className="w-2.5"
+              src={assets.dropdown_icon}
+              alt=""
+              onClick={() => setShowDropdown(!showDropdown)} // mobile click toggle
+            />
+
+            {/* Desktop hover dropdown */}
+            <div className="absolute top-0 right-0 pt-14 text-base font-medium text-gray-600 z-20 hidden md:group-hover:block">
               <div className="min-w-48 bg-gray-50 rounded flex flex-col gap-4 p-4">
                 <p
                   onClick={() => navigate("/my-profile")}
@@ -82,6 +91,56 @@ const Navbar = () => {
                 </p>
               </div>
             </div>
+
+            {/* Mobile click dropdown */}
+            {showDropdown && (
+              <div className="absolute top-12 right-0 text-base font-medium text-gray-600 z-20 md:hidden">
+                <div className="min-w-48 bg-gray-50 rounded flex flex-col gap-4 p-4">
+                  <p
+                    onClick={() => {
+                      navigate("/my-profile");
+                      setShowDropdown(false);
+                    }}
+                    className="hover:text-black cursor-pointer"
+                  >
+                    My Profile
+                  </p>
+                  <p
+                    onClick={() => {
+                      navigate("/my-appointments");
+                      setShowDropdown(false);
+                    }}
+                    className="hover:text-black cursor-pointer"
+                  >
+                    My Appointments
+                  </p>
+                  <p
+                    onClick={() => {
+                      navigate("/my-carts");
+                      setShowDropdown(false);
+                    }}
+                    className="hover:text-black cursor-pointer"
+                  >
+                    My Carts
+                  </p>
+                  <p
+                    onClick={() => {
+                      navigate("/my-orders");
+                      setShowDropdown(false);
+                    }}
+                    className="hover:text-black cursor-pointer"
+                  >
+                    Order History
+                  </p>
+                  <p
+                    onClick={logout}
+                    className="hover:text-black cursor-pointer"
+                  >
+                    Logout
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <button
@@ -131,6 +190,15 @@ const Navbar = () => {
             <NavLink onClick={() => setShowMenu(false)} to="/contact">
               <p className="px-4 py-2 rounded full inline-block">CONTACT</p>
             </NavLink>
+
+            {/* Create Account same style as others */}
+            {!token && (
+              <NavLink onClick={() => setShowMenu(false)} to="/login">
+                <p className="px-4 py-2 rounded full inline-block">
+                  CREATE ACCOUNT
+                </p>
+              </NavLink>
+            )}
           </ul>
         </div>
       </div>
