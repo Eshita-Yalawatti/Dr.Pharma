@@ -1,7 +1,4 @@
 import React from "react";
-// import { assets } from "../assets/assets/assets";
-// import { assets } from "../assets/assets/assets";
-// import assets from "../assets/assets/assets";
 import contact_image from "../assets/contact_image.png";
 
 const Contact = () => {
@@ -18,7 +15,7 @@ const Contact = () => {
       <div className="my-10 flex flex-col justify-center md:flex-row gap-10 mb-28 text-sm">
         <img
           className="w-full md:max-w-[360px]"
-          src={assets.contact_image}
+          src={contact_image}
           alt="Contact"
         />
 
