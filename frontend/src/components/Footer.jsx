@@ -5,9 +5,9 @@ const Footer = () => {
   return (
     <div className="md:mx-10">
       <div className="flex flex-col sm:grid grid-cols-[3fr_1fr_1fr] gap-14 my-10 mt-40 text-sm">
-        {/* ----- left Section ----- */}
+        {/* Left Section */}
         <div>
-          <img className="mb-5 w-40" src={assets.logo} alt="" />
+          <img className="mb-5 w-40" src={assets.logo} alt="Logo" />
           <p className="w-full md:w-2/3 text-gray-600 leading-6">
             We connect you with trusted healthcare professionals and provide
             easy access to genuine medicines. Book doctor appointments online
@@ -16,9 +16,9 @@ const Footer = () => {
           </p>
         </div>
 
-        {/* ----- Center Section ----- */}
+        {/* Center Section */}
         <div>
-          <p className="text-xl font-medium mb-5 ">COMPANY</p>
+          <p className="text-xl font-medium mb-5">COMPANY</p>
           <ul className="flex flex-col gap-2 text-gray-600">
             <li>Home</li>
             <li>About us</li>
@@ -27,19 +27,17 @@ const Footer = () => {
           </ul>
         </div>
 
-        {/* ----- Right Section ----- */}
+        {/* Right Section */}
         <div>
-          <p className="text-xl font-medium mb-5 ">GET IN TOUCH</p>
+          <p className="text-xl font-medium mb-5">GET IN TOUCH</p>
           <ul className="flex flex-col gap-2 text-gray-600">
             <li>dr.pharmedic@gmail.com</li>
           </ul>
         </div>
       </div>
 
-      {/* ----- Copyright Section ----- */}
-      <div>
-        <hr className="text-gray-400" />
-      </div>
+      {/* Copyright Section */}
+      <hr className="text-gray-400" />
     </div>
   );
 };
