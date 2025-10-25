@@ -36,7 +36,7 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* Copyright Section */}
+      {/* Copyright */}
       <hr className="text-gray-400" />
     </div>
   );
