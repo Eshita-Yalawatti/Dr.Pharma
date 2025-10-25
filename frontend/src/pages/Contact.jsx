@@ -23,16 +23,6 @@ const Contact = () => {
             <br />
             Kha 224, Bir Uttam Rafiqul Islam Ave, Dhaka 1212, BD
           </p>
-          <p className=" text-gray-500">
-            Tel: (415) 555-0132 <br /> Email: sumaiya.hossain.surovi@gmail.com
-          </p>
-          <p className=" font-semibold text-lg text-gray-600">
-            CAREERS AT PRESCRIPTO
-          </p>
-          <p className=" text-gray-500">
-            Learn more about our teams and job openings.
-          </p>
-          <button className="border border-black px-8 py-4 text-sm hover:bg-black hover:text-white transition-all duration-500 cursor-pointer">
             Explore Jobs
           </button>
         </div>
