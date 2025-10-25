@@ -17,12 +17,13 @@ const Contact = () => {
           alt=""
         />
         <div className="flex flex-col justify-center items-start gap-6">
-          <p className=" font-semibold text-lg text-gray-600">OUR OFFICE</p>
-          <p className=" text-gray-500">
+          <p className="font-semibold text-lg text-gray-600">OUR OFFICE</p>
+          <p className="text-gray-500">
             BRAC University Medical Center(Badda)
             <br />
             Kha 224, Bir Uttam Rafiqul Islam Ave, Dhaka 1212, BD
           </p>
+          <button className="text-blue-600 underline">
             Explore Jobs
           </button>
         </div>
