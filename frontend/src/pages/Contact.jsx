@@ -1,7 +1,8 @@
 import React from "react";
 // import { assets } from "../assets/assets/assets";
 // import { assets } from "../assets/assets/assets";
-import assets from "../assets/assets/assets";
+// import assets from "../assets/assets/assets";
+import contact_image from "../assets/contact_image.png";
 
 const Contact = () => {
   return (
